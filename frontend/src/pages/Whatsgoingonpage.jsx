@@ -8,6 +8,8 @@ import { announcementsApi } from "../api";
 import Icon from "../components/Icon";
 import cereaLogo from "../assets/cerea-logo.png";
 import PortalFooter from "../components/PortalFooter";
+import PreviewBanner from "../components/PreviewBanner";
+import { viewerFor } from "../preview";
 
 /* ─── Shared constants ─────────────────────────────────────── */
 const FONT = "Montserrat, sans-serif";
@@ -116,7 +118,8 @@ const PRIORITY_FILTERS = ["All", "High", "Medium", "Low"];
    MAIN PAGE
 ═══════════════════════════════════════════════════════════════ */
 export default function WhatsGoingOnPage() {
-  const { user, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  const user = viewerFor(authUser);   // previewed identity when an admin is in "Preview as user"
   const navigate = useNavigate();
 
   const [announcements, setAnnouncements] = useState([]);
@@ -155,6 +158,7 @@ export default function WhatsGoingOnPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f5f5", fontFamily: FONT, display: "flex", flexDirection: "column" }}>
+      <PreviewBanner />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=DM+Sans:wght@700;800&display=swap');
         * { box-sizing: border-box; }

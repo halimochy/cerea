@@ -12,6 +12,7 @@
 // ================================================================
 
 import { createContext, useContext, useState, useCallback } from "react";
+import { clearPreview } from "../preview";
 
 const AuthContext = createContext(null);
 
@@ -44,6 +45,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
+    clearPreview();
     setUser(null);
   }, []);
 

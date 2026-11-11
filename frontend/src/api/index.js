@@ -1,6 +1,10 @@
 // src/api/index.js  (v2 — tambah departmentsApi)
 
 import axios from "axios";
+import { getPreview, previewParams } from "../preview";
+
+// Read endpoints that follow the admin's "Preview as user" selection
+const PREVIEW_AWARE = ["/cards", "/cards/frequently-used", "/announcements"];
 
 const api = axios.create({
   baseURL: "/api",
@@ -30,6 +34,9 @@ export function resolveUploadUrl(path) {
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  if ((config.method || "get") === "get" && PREVIEW_AWARE.includes(config.url)) {
+    config.params = { ...config.params, ...previewParams() };
+  }
   return config;
 });
 
@@ -70,7 +77,8 @@ export const usersApi = {
 export const cardsApi = {
   list:            (category) => api.get("/cards", { params: category ? { category } : {} }),
   frequentlyUsed:  (limit=6)  => api.get("/cards/frequently-used", { params: { limit } }),
-  recordClick:     (id)       => api.post(`/cards/${id}/click`),
+  // Clicks made while previewing are not counted (they'd skew the admin's own stats)
+  recordClick:     (id)       => getPreview() ? Promise.resolve({ data: null }) : api.post(`/cards/${id}/click`),
   create:          (data)     => api.post("/cards", data),
   update:          (id, data) => api.put(`/cards/${id}`, data),
   delete:          (id)       => api.delete(`/cards/${id}`),

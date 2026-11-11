@@ -1,7 +1,8 @@
 // src/pages/AdminDashboard.jsx
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { startPreview, clearPreview } from "../preview";
 import { useAuth } from "../context/AuthContext";
 import { usersApi, cardsApi, departmentsApi, announcementsApi, resolveUploadUrl } from "../api";
 import Modal from "../components/Modal";
@@ -1129,12 +1130,112 @@ function AnnouncementFormModal({ ann, departments, onClose, onSaved }) {
   );
 }
 
+/* ─── Preview as user — picker ───────────────────────────────── */
+const PREVIEW_ROLES = ALL_ROLES.filter(r => r !== "Admin");
+
+function PreviewPicker({ depts, users, onClose, onStart }) {
+  const [mode,   setMode]   = useState("role");          // "role" | "user"
+  const [role,   setRole]   = useState("User");
+  const [deptId, setDeptId] = useState("");              // "" = no department
+  const [userId, setUserId] = useState("");
+
+  const previewUsers = users.filter(u => u.role !== "Admin");
+  const deptName = (id) => depts.find(d => String(d.id) === String(id))?.department_name || "";
+
+  const canStart = mode === "role" || !!userId;
+
+  function start() {
+    if (mode === "role") {
+      onStart({ mode: "role", role, department_id: deptId ? Number(deptId) : null,
+                department_name: deptId ? deptName(deptId) : "" });
+    } else {
+      const u = previewUsers.find(x => String(x.id) === String(userId));
+      if (!u) return;
+      onStart({ mode: "user", user_id: u.id, full_name: u.full_name, nik: u.nik, role: u.role,
+                department_id: u.department_id, department_name: u.department_name || "" });
+    }
+  }
+
+  const seg = (active) => ({
+    flex:1, padding:"8px 10px", borderRadius:8, fontSize:"0.8rem", fontWeight:600, cursor:"pointer",
+    border:"none", background: active ? "white" : "transparent",
+    color: active ? "var(--brand)" : "var(--gray-500)",
+    boxShadow: active ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+  });
+
+  return (
+    <Modal title="Preview as user" onClose={onClose} size="sm">
+      <p style={{ fontSize:"0.8rem", color:"var(--gray-500)", marginTop:-10, marginBottom:16, lineHeight:1.5 }}>
+        Open the portal exactly as someone else sees it: same apps, announcements and Frequently Used. Nothing is changed and clicks aren't counted.
+      </p>
+
+      <div role="tablist" style={{ display:"flex", gap:4, padding:4, borderRadius:10, background:"var(--gray-100)", marginBottom:16 }}>
+        <button role="tab" aria-selected={mode==="role"} style={seg(mode==="role")} onClick={() => setMode("role")}>By role &amp; department</button>
+        <button role="tab" aria-selected={mode==="user"} style={seg(mode==="user")} onClick={() => setMode("user")}>Specific user</button>
+      </div>
+
+      {mode === "role" ? (
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          <div>
+            <label style={IS.label}>Role</label>
+            <SelectWrap value={role} onChange={e => setRole(e.target.value)}>
+              {PREVIEW_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+            </SelectWrap>
+          </div>
+          <div>
+            <label style={IS.label}>Department</label>
+            <SelectWrap value={deptId} onChange={e => setDeptId(e.target.value)}>
+              <option value="">No department</option>
+              {depts.map(d => <option key={d.id} value={d.id}>{d.department_name}{d.is_active ? "" : " (inactive)"}</option>)}
+            </SelectWrap>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <label style={IS.label}>User</label>
+          <SelectWrap value={userId} onChange={e => setUserId(e.target.value)}>
+            <option value="">Select a user…</option>
+            {previewUsers.map(u => (
+              <option key={u.id} value={u.id}>
+                {u.full_name} · {u.nik} · {u.role}{u.department_name ? ` · ${u.department_name}` : ""}
+              </option>
+            ))}
+          </SelectWrap>
+          <p style={{ fontSize:"0.72rem", color:"var(--gray-400)", marginTop:6 }}>
+            Uses this user's role, department and their own Frequently Used apps.
+          </p>
+        </div>
+      )}
+
+      <div style={{ display:"flex", justifyContent:"flex-end", gap:8, marginTop:20 }}>
+        <button onClick={onClose} style={{ ...IS.btnGhost, padding:"9px 16px", fontSize:"0.85rem" }}>Cancel</button>
+        <button onClick={start} disabled={!canStart}
+          style={{ ...IS.btnPrimary, display:"flex", alignItems:"center", gap:6, opacity: canStart ? 1 : 0.5, cursor: canStart ? "pointer" : "not-allowed" }}>
+          <Icon name="eye" size={14} /> Open preview
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 /* ════════════════════════════════════════════════════════════
    MAIN ADMIN DASHBOARD
 ════════════════════════════════════════════════════════════ */
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Coming back to the dashboard always ends a preview, so admin data
+  // (e.g. the full card list) is never filtered. Runs before the fetch effects.
+  useState(() => clearPreview());
+  const [showPreview, setShowPreview] = useState(() => searchParams.get("preview") === "pick");
+
+  const closePreviewPicker = () => {
+    setShowPreview(false);
+    if (searchParams.has("preview")) setSearchParams({}, { replace: true });
+  };
+  const openPreview = (p) => { startPreview(p); navigate("/user-portal"); };
 
   const [activeTab, setActiveTab] = useState("depts");
   const [toast,     setToast]     = useState("");
@@ -1261,6 +1362,9 @@ export default function AdminDashboard() {
   return (
     <div style={{ minHeight:"100vh", background:"var(--gray-50)" }}>
       {toast && <Toast msg={toast} />}
+      {showPreview && (
+        <PreviewPicker depts={depts} users={users} onClose={closePreviewPicker} onStart={openPreview} />
+      )}
 
       {/* Header */}
       <header className="portal-header">
@@ -1277,6 +1381,11 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <button onClick={() => setShowPreview(true)} title="See the portal as a role, department or specific user"
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:8, border:"none", cursor:"pointer", fontSize:"0.8rem", fontWeight:600, color:"white",
+                background:"linear-gradient(135deg,#0B1F3A,#2563EB)", boxShadow:"0 2px 8px rgba(37,99,235,0.25)" }}>
+              <Icon name="eye" size={14} /> Preview as user
+            </button>
             <div style={{ textAlign:"right" }}>
               <p style={{ fontSize:"0.82rem", fontWeight:600, color:"var(--gray-700)" }}>{user?.full_name}</p>
               <p style={{ fontSize:"0.68rem", color:"var(--gray-400)" }}>NIK: {user?.nik}</p>

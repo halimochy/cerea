@@ -44,6 +44,8 @@ which apps appear as "General Apps", and targeted announcements. Changes appear 
 - Application card management with a visual icon picker, image upload (with crop/zoom), favicon auto-fetch or image URL
 - Per-card targeting by **role and department**; one-click "General App" toggle
 - Announcement management with priority, link, and role/department targeting
+- **Preview as user**: open the real portal as any role + department, or as a specific user, to check
+  exactly which apps, announcements and Frequently Used items they see (read-only; clicks aren't counted)
 
 **Platform**
 - JWT authentication (8-hour sessions by default) with bcrypt-hashed passwords
@@ -84,6 +86,7 @@ cerea/
 │   │   ├── context/          Auth state (token + profile)
 │   │   ├── api/              Axios client for the backend
 │   │   ├── config/           Branding text (company name, footer)
+│   │   ├── preview.js        Admin "Preview as user" state
 │   │   └── msalConfig.js     Microsoft SSO configuration
 │   ├── vite.config.js        Dev server; proxies /api → http://localhost:8000
 │   └── .env.example          Frontend environment template

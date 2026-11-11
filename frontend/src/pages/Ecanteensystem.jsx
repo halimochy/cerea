@@ -7,6 +7,8 @@ import Icon from "../components/Icon";
 import { AppIcon, IconBadge } from "../components/icons";
 import cereaLogo from "../assets/cerea-logo.png";
 import PortalFooter from "../components/PortalFooter";
+import PreviewBanner from "../components/PreviewBanner";
+import { viewerFor } from "../preview";
 
 /* ─── Constants ───────────────────────────────────────────────── */
 const FONT = "Montserrat, sans-serif";
@@ -162,7 +164,8 @@ function TxRow({ tx }) {
    MAIN
 ════════════════════════════════════════════════════════════════ */
 export default function ECanteenSystem() {
-  const { user, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  const user = viewerFor(authUser);   // previewed identity when an admin is in "Preview as user"
   const navigate = useNavigate();
 
   const [activeNav,   setActiveNav]   = useState("dashboard");
@@ -172,6 +175,7 @@ export default function ECanteenSystem() {
 
   return (
     <div style={{ minHeight:"100vh", background:"#f5f5f5", fontFamily:FONT, display:"flex", flexDirection:"column" }}>
+      <PreviewBanner />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=DM+Sans:wght@700;800&display=swap');

@@ -8,6 +8,8 @@ import Icon from "../components/Icon";
 import { AppIcon, IconBadge, CATEGORY_ICONS } from "../components/icons";
 import cereaLogo from "../assets/cerea-logo.png";
 import PortalFooter from "../components/PortalFooter";
+import PreviewBanner from "../components/PreviewBanner";
+import { viewerFor } from "../preview";
 import cereaMarkWhite from "../assets/cerea-mark-white.png";
 
 /* ─── Constants ──────────────────────────────────────────────── */
@@ -429,7 +431,8 @@ function WhatsGoingOn({ announcements = [], onViewAll }) {
    MAIN USER PORTAL
 ════════════════════════════════════════════════════════════ */
 export default function UserPortal() {
-  const { user, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  const user = viewerFor(authUser);   // previewed identity when an admin is in "Preview as user"
   const navigate = useNavigate();
   const [cards,          setCards]          = useState([]);
   const [frequentlyUsed, setFrequentlyUsed] = useState([]);
@@ -493,6 +496,7 @@ export default function UserPortal() {
 
   return (
     <div style={{ minHeight:"100vh", background:"#f5f5f5", fontFamily:FONT, display:"flex", flexDirection:"column" }}>
+      <PreviewBanner />
 
       {/* ── Announcements Modal — removed, now a dedicated page ── */}
 

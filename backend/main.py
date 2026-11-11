@@ -97,6 +97,72 @@ def require_admin(
     return current_user
 
 
+class Viewer:
+    """Whose point of view the portal data is filtered for.
+
+    Normally the signed-in user. Admins may "preview as user" by passing
+    ?as_user_id=<id>  (a real user: their role, department and clicks), or
+    ?as_role=<role>&as_department_id=<id|0>  (a hypothetical user, no clicks).
+    """
+    def __init__(self, user_id, role, department_id, is_preview=False):
+        self.id            = user_id
+        self.role          = role
+        self.department_id = department_id or None
+        self.is_preview    = is_preview
+
+
+def get_viewer(
+    as_user_id:       Optional[int] = Query(None, description="Admin only: preview as this user"),
+    as_role:          Optional[str] = Query(None, description="Admin only: preview as this role"),
+    as_department_id: Optional[int] = Query(None, description="Admin only: department for as_role (0 = none)"),
+    current_user:     models.User   = Depends(get_current_user),
+    db:               Session       = Depends(get_db),
+) -> Viewer:
+    if as_user_id is None and as_role is None:
+        return Viewer(current_user.id, current_user.role, current_user.department_id)
+
+    if current_user.role != "Admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Preview is only available to admins")
+
+    if as_user_id is not None:
+        target = db.query(models.User).filter(models.User.id == as_user_id).first()
+        if not target:
+            raise HTTPException(404, detail="Preview user not found")
+        return Viewer(target.id, target.role, target.department_id, is_preview=True)
+
+    if as_role not in models.VALID_ROLES:
+        raise HTTPException(400, detail=f"Unknown role '{as_role}'")
+    if as_department_id and not db.query(models.Department).filter(
+        models.Department.id == as_department_id
+    ).first():
+        raise HTTPException(404, detail="Preview department not found")
+    return Viewer(None, as_role, as_department_id, is_preview=True)
+
+
+def _filter_cards_for(q, viewer: Viewer):
+    """RBAC for cards: Admin sees all; others need a role match AND a department match."""
+    if viewer.role == "Admin":
+        return q
+    # Layer 1 — Role RBAC
+    q = q.filter(
+        func.json_contains(
+            models.ApplicationCard.target_roles,
+            func.json_quote(viewer.role),
+        )
+    )
+    # Layer 2 — Department filter: [] = semua dept bisa akses; [1,3] = hanya dept tertentu
+    if viewer.department_id:
+        return q.filter(
+            (func.json_length(models.ApplicationCard.target_department) == 0)
+            | (func.json_contains(
+                models.ApplicationCard.target_department,
+                str(viewer.department_id),
+            ))
+        )
+    # User tanpa dept hanya lihat kartu yg target_department kosong
+    return q.filter(func.json_length(models.ApplicationCard.target_department) == 0)
+
+
 def _enrich_user(user: models.User) -> dict:
     """Tambahkan department_name ke response user."""
     d = {c.name: getattr(user, c.name) for c in user.__table__.columns}
@@ -413,34 +479,11 @@ def delete_user(
 
 @app.get("/cards", response_model=List[schemas.CardResponse], tags=["🃏 Cards"])
 def list_cards(
-    category:     Optional[str] = Query(None),
-    current_user: models.User   = Depends(get_current_user),
-    db:           Session       = Depends(get_db),
+    category: Optional[str] = Query(None),
+    viewer:   Viewer        = Depends(get_viewer),
+    db:       Session       = Depends(get_db),
 ):
-    q = db.query(models.ApplicationCard)
-    if current_user.role != "Admin":
-        # Layer 1 — Role RBAC
-        q = q.filter(
-            func.json_contains(
-                models.ApplicationCard.target_roles,
-                func.json_quote(current_user.role),
-            )
-        )
-        # Layer 2 — Department filter
-        # [] = semua dept bisa akses; [1,3] = hanya dept tertentu
-        if current_user.department_id:
-            q = q.filter(
-                (func.json_length(models.ApplicationCard.target_department) == 0)
-                | (func.json_contains(
-                    models.ApplicationCard.target_department,
-                    str(current_user.department_id),
-                ))
-            )
-        else:
-            # User tanpa dept hanya lihat kartu yg target_department kosong
-            q = q.filter(
-                func.json_length(models.ApplicationCard.target_department) == 0
-            )
+    q = _filter_cards_for(db.query(models.ApplicationCard), viewer)
     if category:
         q = q.filter(models.ApplicationCard.category == category)
     return q.order_by(models.ApplicationCard.sort_order,
@@ -576,45 +619,27 @@ def record_card_click(
     summary="Top N kartu paling sering diklik oleh user ini",
 )
 def get_frequently_used(
-    limit:        int         = 6,
-    current_user: models.User = Depends(get_current_user),
-    db:           Session     = Depends(get_db),
+    limit:  int     = 6,
+    viewer: Viewer  = Depends(get_viewer),
+    db:     Session = Depends(get_db),
 ):
     """
     Urutan: click_count DESC (per user) → sort_order ASC sebagai tiebreaker.
     Hanya kartu yang lolos RBAC (role + department) yang masuk.
     Jika belum pernah klik → fallback ke 0, lalu diurutkan berdasarkan sort_order.
+    Preview by role (no real user) has no clicks, so it falls back to sort_order.
     """
     clicks_sub = (
         db.query(models.CardClick.card_id, models.CardClick.click_count)
-        .filter(models.CardClick.user_id == current_user.id)
+        .filter(models.CardClick.user_id == (viewer.id or -1))
         .subquery()
     )
 
-    q = (
+    q = _filter_cards_for(
         db.query(models.ApplicationCard)
-        .outerjoin(clicks_sub, models.ApplicationCard.id == clicks_sub.c.card_id)
+        .outerjoin(clicks_sub, models.ApplicationCard.id == clicks_sub.c.card_id),
+        viewer,
     )
-
-    if current_user.role != "Admin":
-        q = q.filter(
-            func.json_contains(
-                models.ApplicationCard.target_roles,
-                func.json_quote(current_user.role),
-            )
-        )
-        if current_user.department_id:
-            q = q.filter(
-                (func.json_length(models.ApplicationCard.target_department) == 0)
-                | (func.json_contains(
-                    models.ApplicationCard.target_department,
-                    str(current_user.department_id),
-                ))
-            )
-        else:
-            q = q.filter(
-                func.json_length(models.ApplicationCard.target_department) == 0
-            )
 
     # PERBAIKAN DI SINI: Mengganti .nulls_last() menggunakan func.coalesce agar kompatibel dengan MariaDB
     results = (
@@ -635,9 +660,9 @@ def get_frequently_used(
 
 @app.get("/announcements", response_model=List[schemas.AnnouncementResponse], tags=["📢 Announcements"])
 def list_announcements(
-    active_only: bool = True,
+    active_only: bool    = True,
     db:          Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    viewer:      Viewer  = Depends(get_viewer),
 ):
     """
     Semua user bisa GET.
@@ -651,7 +676,7 @@ def list_announcements(
     announcements = q.order_by(models.Announcement.announce_date.desc()).all()
 
     # Admin → return semua tanpa filter
-    if current_user.role == "Admin":
+    if viewer.role == "Admin":
         return announcements
 
     # Non-admin → filter berdasarkan target_roles & target_departments
@@ -660,8 +685,8 @@ def list_announcements(
         roles = ann.target_roles or []
         depts = ann.target_departments or []
 
-        role_match = (len(roles) == 0) or (current_user.role in roles)
-        dept_match = (len(depts) == 0) or (current_user.department_id in depts)
+        role_match = (len(roles) == 0) or (viewer.role in roles)
+        dept_match = (len(depts) == 0) or (viewer.department_id in depts)
 
         if role_match and dept_match:
             result.append(ann)
