@@ -20,8 +20,11 @@ load_dotenv()
 import models, schemas, auth
 from database import get_db, engine
 
-# Auto-create tabel jika belum ada
-models.Base.metadata.create_all(bind=engine)
+# Auto-create tabel jika belum ada.
+# Serverless hosts can set AUTO_CREATE_TABLES=false once `python seed.py` has created
+# the tables, to avoid the extra queries on every cold start.
+if os.getenv("AUTO_CREATE_TABLES", "true").strip().lower() not in ("0", "false", "no"):
+    models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Cerea — Enterprise Portal API",
@@ -60,9 +63,19 @@ app.add_middleware(
 #   (http://localhost:8000/uploads/icons/xxx.png) yang disimpan
 #   sebagai icon_value di database — persis seperti icon_type="url".
 # ════════════════════════════════════════════════════════════
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads", "icons")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")), name="uploads")
+#
+#   Serverless hosts (Vercel) have a read-only filesystem, so uploads are
+#   switched off there (automatically when VERCEL is set, or with
+#   UPLOADS_ENABLED=false) and admins use the preset icons instead.
+UPLOADS_ENABLED = os.getenv("UPLOADS_ENABLED", "false" if os.getenv("VERCEL") else "true").strip().lower() in ("1", "true", "yes")
+UPLOAD_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+UPLOAD_DIR = os.path.join(UPLOAD_ROOT, "icons")
+if UPLOADS_ENABLED:
+    try:
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        app.mount("/uploads", StaticFiles(directory=UPLOAD_ROOT), name="uploads")
+    except OSError:          # read-only filesystem
+        UPLOADS_ENABLED = False
 
 ALLOWED_IMAGE_EXT = {".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif"}
 MAX_UPLOAD_SIZE    = 2 * 1024 * 1024  # 2 MB
@@ -505,6 +518,11 @@ async def upload_card_icon(
     File disimpan di backend/uploads/icons/, lalu URL publiknya
     dikembalikan untuk disimpan sebagai `icon_value` (icon_type="upload").
     """
+    if not UPLOADS_ENABLED:
+        raise HTTPException(
+            status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Icon upload is not available on this deployment. Choose a preset icon instead.",
+        )
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in ALLOWED_IMAGE_EXT:
         raise HTTPException(

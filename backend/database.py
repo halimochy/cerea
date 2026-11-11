@@ -9,6 +9,7 @@
 # ================================================================
 
 from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
@@ -37,16 +38,25 @@ elif DATABASE_URL.startswith("postgresql://"):
 
 IS_POSTGRES = DATABASE_URL.startswith("postgresql")
 
+# Serverless hosts (Vercel) start many short-lived instances, so a local connection
+# pool only wastes database connections: open one per use and rely on the provider's
+# pooler (e.g. Supabase "Transaction pooler"). Enabled automatically when VERCEL is
+# set, or with DB_POOL=null.
+USE_NULL_POOL = os.getenv("DB_POOL", "").strip().lower() == "null" or bool(os.getenv("VERCEL"))
+
 # Buat engine — ini adalah "jembatan" antara Python dan MariaDB / PostgreSQL
-# Hosted Postgres poolers (Supabase) allow few connections, so the pool is smaller there.
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,                    # test koneksi sebelum pakai (auto-reconnect)
-    pool_recycle=3600,                     # daur ulang koneksi setiap 1 jam
-    pool_size=5 if IS_POSTGRES else 10,    # jumlah koneksi paralel yang tersedia
-    max_overflow=5 if IS_POSTGRES else 20, # koneksi tambahan jika pool penuh
-    echo=False,           # set True untuk mencetak query SQL ke terminal (debug)
-)
+if USE_NULL_POOL:
+    engine = create_engine(DATABASE_URL, poolclass=NullPool, echo=False)
+else:
+    # Hosted Postgres poolers (Supabase) allow few connections, so the pool is smaller there.
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,                    # test koneksi sebelum pakai (auto-reconnect)
+        pool_recycle=3600,                     # daur ulang koneksi setiap 1 jam
+        pool_size=5 if IS_POSTGRES else 10,    # jumlah koneksi paralel yang tersedia
+        max_overflow=5 if IS_POSTGRES else 20, # koneksi tambahan jika pool penuh
+        echo=False,           # set True untuk mencetak query SQL ke terminal (debug)
+    )
 
 # SessionLocal = "pabrik" pembuat sesi database
 # Setiap request HTTP akan mendapat sesi sendiri (tidak shared)
