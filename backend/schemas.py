@@ -25,11 +25,6 @@ class LoginRequest(BaseModel):
         return v.strip()
 
 
-class MicrosoftLoginRequest(BaseModel):
-    # Raw Microsoft Entra ID token from MSAL; verified on the server (ms_auth.py)
-    id_token: str
-
-
 class Token(BaseModel):
     access_token: str
     token_type:   str = "bearer"

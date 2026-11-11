@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { COMPANY, COPYRIGHT_TEXT } from "../config/company";
-import { useMsal } from "@azure/msal-react";
 import { useAuth } from "../context/AuthContext";
 import { authApi } from "../api";
-import { loginRequest, extractNikFromEmail, EMAIL_DOMAIN } from "../msalConfig";
 import Icon from "../components/Icon";
 import cereaLogoWhite    from "../assets/cerea-logo-white.png";
 import cereaMark         from "../assets/cerea-mark.png";
@@ -44,9 +42,6 @@ function ForgotPasswordModal({ onClose }) {
             <li>The administrator sets a temporary password in User Management.</li>
             <li>Sign in and ask the administrator to change it to one only you know.</li>
           </ol>
-          <p style={{ fontSize:"0.70rem", color:"#9ca3af", margin:0 }}>
-            Have a work Microsoft account? Try <strong>Login with Microsoft</strong> instead.
-          </p>
           <button onClick={onClose} style={LS.btnPrimary}>Back to Login</button>
         </div>
         <style>{`@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
@@ -88,14 +83,11 @@ const LS = {
 export default function LoginPage() {
   const navigate           = useNavigate();
   const { login }          = useAuth();
-  const { instance: msal } = useMsal();
 
   const [nik,          setNik]          = useState("");
   const [password,     setPassword]     = useState("");
   const [showPass,     setShowPass]     = useState(false);
   const [loading,      setLoading]      = useState(false);
-  const [msLoading,    setMsLoading]    = useState(false);
-  const [ssoStep,      setSsoStep]      = useState(null);
   const [error,        setError]        = useState("");
   const [showForgotPw, setShowForgotPw] = useState(false);
   const [guestEnabled, setGuestEnabled] = useState(false);
@@ -138,31 +130,6 @@ export default function LoginPage() {
     } catch (err) {
       setError(err.response?.data?.detail || "Incorrect username or password. Please try again.");
     } finally { setLoading(false); }
-  };
-
-  /* ── Microsoft SSO ── */
-  const handleMsLogin = async () => {
-    setError(""); setSsoStep(null); setMsLoading(true);
-    try {
-      setSsoStep(1);
-      let msResult;
-      try { msResult = await msal.loginPopup(loginRequest); }
-      catch (msErr) {
-        if (msErr.errorCode === "user_cancelled" || msErr.errorCode === "popup_window_error") return;
-        throw new Error(msErr.errorCode === "access_denied" ? "Access denied. Contact IT Department." : `Microsoft auth failed: ${msErr.errorCode ?? msErr.message}`);
-      }
-      const msEmail = msResult.account.username;
-      setSsoStep(2);
-      const nik = extractNikFromEmail(msEmail);
-      if (!nik) throw new Error(`Invalid email format: "${msEmail}". Use NIK@${EMAIL_DOMAIN}`);
-      const res = await authApi.microsoftLogin(msResult.idToken);
-      setSsoStep(3);
-      await new Promise(r => setTimeout(r, 500));
-      login(res.data.user, res.data.access_token);
-      redirectByRole(res.data.user.role);
-    } catch (err) {
-      setError(err.response?.data?.detail || err.message || "Microsoft login failed.");
-    } finally { setMsLoading(false); setSsoStep(null); }
   };
 
   return (
@@ -237,24 +204,8 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* SSO progress */}
-          {ssoStep && (
-            <div style={{ marginBottom:14, padding:"10px 14px", background:"#eff6ff", borderRadius:8, border:"1px solid #bfdbfe" }}>
-              {[{id:1,label:"Validating Microsoft account"},{id:2,label:"Verifying in local database"},{id:3,label:"Preparing session"}].map(s => (
-                <div key={s.id} style={{ display:"flex", alignItems:"center", gap:8, marginBottom: s.id<3?6:0 }}>
-                  <div style={{ width:18, height:18, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:ssoStep>s.id?"#22c55e":ssoStep===s.id?"#3b82f6":"#e2e8f0", transition:"all .3s" }}>
-                    {ssoStep>s.id && <Icon name="check" size={10} style={{ color:"white" }} />}
-                    {ssoStep===s.id && <div style={{ width:6, height:6, borderRadius:"50%", background:"white", animation:"spin .8s linear infinite" }} />}
-                  </div>
-                  <span style={{ fontSize:"0.74rem", color:ssoStep>s.id?"#15803d":ssoStep===s.id?"#1d4ed8":"#94a3b8", fontWeight:ssoStep===s.id?600:400 }}>{s.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Form */}
-          {!msLoading && (
-            <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:16 }}>
+          <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:16 }}>
               {/* NIK */}
               <div>
                 <label style={{ ...LS.label, fontSize: '11px' }}>USERNAME</label>
@@ -305,33 +256,18 @@ export default function LoginPage() {
                 {loading ? "Signing in…" : "Login"}
               </button>
             </form>
-          )}
 
-          {/* Divider */}
-          {!msLoading && (
+          {/* Guest access — only when enabled on the server */}
+          {guestEnabled && (
             <div style={{ display:"flex", alignItems:"center", gap:12, margin:"20px 0" }}>
               <div style={{ flex:1, height:1, background:"#f0f0f0" }} />
               <span style={{ fontSize:"0.72rem", color:"#9ca3af", fontWeight:500 }}>or</span>
               <div style={{ flex:1, height:1, background:"#f0f0f0" }} />
             </div>
           )}
-
-          {/* Microsoft SSO */}
-          <button onClick={handleMsLogin} disabled={msLoading || loading}
-            style={{ width:"100%", padding:"11px 0", borderRadius:8, background:"white", color:"#374151", border:"1.5px solid #e5e7eb", cursor: msLoading||loading ? "not-allowed":"pointer", fontFamily:"Montserrat,sans-serif", fontWeight:600, fontSize:"0.85rem", display:"flex", alignItems:"center", justifyContent:"center", gap:10, transition:"all .2s", opacity:loading?0.5:1 }}
-            onMouseOver={e => { if (!msLoading&&!loading){ e.currentTarget.style.borderColor="#0078d4"; e.currentTarget.style.color="#0078d4"; }}}
-            onMouseOut={e  => { e.currentTarget.style.borderColor="#e5e7eb"; e.currentTarget.style.color="#374151"; }}>
-            {msLoading
-              ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" style={{ animation:"spin .8s linear infinite" }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-              : <svg width="18" height="18" viewBox="0 0 21 21" fill="none"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
-            }
-            {msLoading ? "Processing…" : "Login with Microsoft"}
-          </button>
-
-          {/* Guest access — only when enabled on the server */}
-          {guestEnabled && !msLoading && (
+          {guestEnabled && (
             <button onClick={handleGuestLogin} disabled={guestLoading || loading}
-              style={{ width:"100%", marginTop:10, padding:"11px 0", borderRadius:8,
+              style={{ width:"100%", padding:"11px 0", borderRadius:8,
                 background:"#E6FAF6", color:"#0B1F3A", border:"1.5px solid #9BE7DC",
                 cursor: guestLoading||loading ? "not-allowed" : "pointer",
                 fontFamily:"Montserrat,sans-serif", fontWeight:600, fontSize:"0.85rem",
@@ -343,7 +279,7 @@ export default function LoginPage() {
               {guestLoading ? "Opening guest access…" : "Login as Guest"}
             </button>
           )}
-          {guestEnabled && !msLoading && (
+          {guestEnabled && (
             <p style={{ textAlign:"center", fontSize:"0.66rem", color:"#9ca3af", marginTop:6 }}>
               Guest access is read-only and shows general apps only.
             </p>

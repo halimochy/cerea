@@ -21,8 +21,7 @@ const SECTIONS = [
     list: [
       "Data akun: Nomor Induk Karyawan (NIK), nama lengkap, peran (role), dan departemen.",
       "Kata sandi: disimpan dalam bentuk hash (bcrypt), bukan teks asli, sehingga tidak dapat dibaca oleh administrator.",
-      "Login Microsoft: saat Anda masuk dengan akun Microsoft perusahaan, kami menerima alamat email perusahaan, nama akun, dan pengenal akun dari Microsoft untuk memverifikasi identitas serta mencocokkannya dengan NIK Anda.",
-      "Aktivitas penggunaan: jumlah klik pada kartu aplikasi/tautan di Portal, yang digunakan untuk menampilkan aplikasi yang sering Anda buka.",
+      "Aktivitas penggunaan: jumlah klik pada kartu aplikasi/tautan di Portal, yang digunakan untuk menampilkan aplikasi yang sering Anda buka. Akses tamu (Login as Guest) tidak menyimpan data klik.",
       "Konten yang dikelola administrator: kartu aplikasi dan pengumuman, termasuk target peran dan departemen.",
     ],
   },
@@ -39,7 +38,7 @@ const SECTIONS = [
     title: "4. Pembagian data",
     body: [
       "Data Anda hanya digunakan di lingkungan internal perusahaan dan dapat diakses oleh administrator Portal sebatas yang diperlukan untuk pengelolaan akun. Kami tidak menjual data pribadi Anda.",
-      "Microsoft bertindak sebagai penyedia identitas untuk fitur “Login with Microsoft”; pemrosesan data oleh Microsoft tunduk pada kebijakan privasi Microsoft. Portal juga memuat font dari Google Fonts, sehingga alamat IP perangkat Anda dapat diterima oleh Google saat halaman dibuka.",
+      "Portal memuat font dari Google Fonts, sehingga alamat IP perangkat Anda dapat diterima oleh Google saat halaman dibuka.",
       "Kami dapat mengungkapkan data bila diwajibkan oleh hukum atau permintaan resmi instansi berwenang.",
     ],
   },
@@ -50,8 +49,7 @@ const SECTIONS = [
     ],
     list: [
       "Token sesi dan ringkasan profil (nama, NIK, peran) di penyimpanan lokal (localStorage). Data ini dihapus saat Anda keluar (logout) atau sesi tidak lagi valid.",
-      "Data sesi login Microsoft di penyimpanan sesi (sessionStorage), yang hilang saat tab ditutup.",
-      "Penghitung klik aplikasi per pengguna di penyimpanan lokal untuk fitur “Frequently Used”.",
+      "Pilihan pratinjau administrator (“Preview as user”) di penyimpanan sesi (sessionStorage), yang hilang saat tab ditutup atau saat logout.",
     ],
   },
   {

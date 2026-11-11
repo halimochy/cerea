@@ -16,7 +16,7 @@ import uuid
 from dotenv import load_dotenv
 load_dotenv()
 
-import models, schemas, auth, ms_auth
+import models, schemas, auth
 from database import get_db, engine
 
 # Auto-create tabel jika belum ada
@@ -34,9 +34,6 @@ CORS_ORIGINS = [
         "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
     ).split(",") if o.strip()
 ]
-# Email domain for Microsoft sign-in ({NIK}@EMAIL_DOMAIN) — used in messages
-EMAIL_DOMAIN = os.getenv("EMAIL_DOMAIN", "example.com")
-
 # "Login as Guest": read-only access to General Apps + announcements for everyone.
 # Off unless explicitly enabled. Disabling it also invalidates guest tokens already issued.
 GUEST_LOGIN_ENABLED = os.getenv("GUEST_LOGIN_ENABLED", "false").strip().lower() in ("1", "true", "yes")
@@ -213,68 +210,6 @@ def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED,
                             detail="NIK atau password salah")
     token = auth.create_access_token({"sub": user.nik, "role": user.role})
-    return {"access_token": token, "token_type": "bearer", "user": _enrich_user(user)}
-
-
-@app.post("/auth/microsoft", response_model=schemas.Token, tags=["🔑 Auth"])
-def microsoft_sso(req: schemas.MicrosoftLoginRequest, db: Session = Depends(get_db)):
-    """
-    Microsoft SSO:
-    1. Frontend signs in with MSAL and sends the raw Microsoft ID token
-    2. The server verifies the token signature, audience, issuer, tenant and expiry
-    3. The email is read from the VERIFIED token only, must be NIK@EMAIL_DOMAIN
-    4. The NIK must already exist in the local users table (no auto-provisioning)
-    """
-    import re as _re
-
-    if not ms_auth.is_configured():
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
-                            detail="Microsoft sign-in is not configured on this server")
-    try:
-        claims = ms_auth.verify_id_token(req.id_token)
-    except ms_auth.MicrosoftTokenError as e:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
-                            detail=f"Microsoft sign-in could not be verified: {e}")
-    except OSError:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
-                            detail="Could not reach Microsoft to verify the sign-in. Try again later.")
-
-    email = ms_auth.email_from_claims(claims)
-    nik_from_email, _, domain = email.partition("@")
-
-    # Email must be NIK@EMAIL_DOMAIN (prefix = digits only)
-    if domain != EMAIL_DOMAIN.lower() or not _re.match(r"^\d+$", nik_from_email):
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Format email tidak sesuai standar NIK. "
-                f"Email harus menggunakan format NIK@{EMAIL_DOMAIN} "
-                f"(contoh: 100123@{EMAIL_DOMAIN}). "
-                f"Email diterima: {email or '-'}"
-            )
-        )
-
-    # ── Cari user di database lokal berdasarkan NIK ───────────────
-    user = db.query(models.User).filter(
-        models.User.nik == nik_from_email
-    ).first()
-
-    if not user:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND,
-            detail=(
-                f"NIK '{nik_from_email}' tidak terdaftar di sistem portal. "
-                f"Hubungi IT Department untuk pendaftaran akun."
-            )
-        )
-
-    # ── Buat JWT token portal dengan data dari DB lokal ──────────
-    token = auth.create_access_token({
-        "sub":  user.nik,
-        "role": user.role,
-        "sso":  True,   # flag: login via SSO (bisa dipakai untuk audit log)
-    })
-
     return {"access_token": token, "token_type": "bearer", "user": _enrich_user(user)}
 
 

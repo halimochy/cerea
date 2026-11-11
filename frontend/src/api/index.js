@@ -54,8 +54,6 @@ api.interceptors.response.use(
 
 export const authApi = {
   login:          (nik, password)              => api.post("/auth/login", { nik, password }),
-  // Sends the raw Microsoft ID token; the server verifies it before issuing a session
-  microsoftLogin: (idToken)                    => api.post("/auth/microsoft", { id_token: idToken }),
   me:             ()                           => api.get("/auth/me"),
   options:        ()                           => api.get("/auth/options"),   // e.g. { guest_login: true }
   guestLogin:     ()                           => api.post("/auth/guest"),

@@ -33,8 +33,7 @@ which apps appear as "General Apps", and targeted announcements. Changes appear 
 - **General Apps** and **All Apps** sections with search and Website / Application / Dashboard / Form filters
 - **What's Going On**: priority-coloured announcements, a notification bell and a full announcements page
 - **eCanteen** demo module: card balance, spending-limit gauge and transaction history (mock data)
-- Sign in with **NIK + password**, or optionally with **Microsoft (Entra ID) single sign-on**
-  (the ID token is verified on the server)
+- Sign in with **NIK + password**
 - Optional **Login as Guest**: one click, no NIK or password, read-only access to General Apps and
   announcements meant for everyone (enable with `GUEST_LOGIN_ENABLED=true`)
 - Responsive portal layout for desktop and mobile; built-in Privacy Policy page
@@ -59,7 +58,7 @@ which apps appear as "General Apps", and targeted announcements. Changes appear 
 | Layer | Technologies |
 | --- | --- |
 | Frontend | React 18, React Router 6, Vite 7, Axios, Tailwind CSS (base layer) + custom CSS |
-| Authentication | JWT (`python-jose`), bcrypt, optional Microsoft SSO via `@azure/msal-browser` / `@azure/msal-react` |
+| Authentication | JWT (`python-jose`), bcrypt |
 | Backend | Python 3.12, FastAPI, Uvicorn, SQLAlchemy 2, Pydantic 2 |
 | Database | MariaDB or MySQL (via PyMySQL) |
 | Tooling | npm, uv (or pip + venv) |
@@ -73,7 +72,6 @@ cerea/
 │   ├── models.py             SQLAlchemy models (tables are created automatically)
 │   ├── schemas.py            Pydantic request/response schemas
 │   ├── auth.py               Password hashing and JWT helpers
-│   ├── ms_auth.py            Server-side verification of Microsoft ID tokens
 │   ├── database.py           Database engine and sessions
 │   ├── seed.py               Creates tables, the first admin, and optional demo data
 │   ├── pyproject.toml        Dependencies (uv); requirements.txt for pip
@@ -88,8 +86,7 @@ cerea/
 │   │   ├── context/          Auth state (token + profile)
 │   │   ├── api/              Axios client for the backend
 │   │   ├── config/           Branding text (company name, footer)
-│   │   ├── preview.js        Admin "Preview as user" state
-│   │   └── msalConfig.js     Microsoft SSO configuration
+│   │   └── preview.js        Admin "Preview as user" state
 │   ├── vite.config.js        Dev server; proxies /api → http://localhost:8000
 │   └── .env.example          Frontend environment template
 └── docs/                     Application flow diagram
@@ -134,7 +131,7 @@ Run `python seed.py --reset-admin` at any time to set a new admin password. Drop
 
 ```bash
 cd frontend
-cp .env.example .env          # optional: only needed for Microsoft SSO or a remote API
+cp .env.example .env          # optional: only needed when the API is on another origin
 npm install
 ```
 
@@ -148,8 +145,6 @@ npm install
 | `JWT_SECRET` | ✅ | Long random string used to sign tokens (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `TOKEN_EXPIRE_MINUTES` | | Session length in minutes (default `480`) |
 | `CORS_ORIGINS` | | Comma-separated allowed origins (default: the Vite dev server) |
-| `EMAIL_DOMAIN` | | Required email domain for Microsoft sign-in, `{NIK}@domain` (default `example.com`) |
-| `MSAL_CLIENT_ID` / `MSAL_TENANT_ID` | | Entra ID app and tenant IDs the server uses to verify Microsoft ID tokens (same values as the `VITE_` ones). Empty = Microsoft sign-in disabled |
 | `GUEST_LOGIN_ENABLED` | | `true` shows **Login as Guest** on the login page (default `false`). Turning it off also ends existing guest sessions |
 | `GUEST_TOKEN_MINUTES` | | Guest session length in minutes (default `60`) |
 | `ADMIN_NIK` / `ADMIN_PASSWORD` | | First admin account created by `seed.py` (password generated if empty) |
@@ -159,13 +154,9 @@ npm install
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `VITE_MSAL_CLIENT_ID` | | Entra ID app (client) ID, only for Microsoft sign-in |
-| `VITE_MSAL_TENANT_ID` | | Entra ID directory (tenant) ID |
-| `VITE_EMAIL_DOMAIN` | | Employee email domain; accounts must look like `{NIK}@domain` |
 | `VITE_API_BASE_URL` | | Backend origin for uploaded icons in production, e.g. `https://api.example.com` |
 
 > `VITE_*` values are compiled into the public JavaScript bundle. Never put secrets in them.
-> Setup steps for Microsoft sign-in are in [`frontend/src/msalConfig.js`](frontend/src/msalConfig.js).
 
 ## Running Locally
 
@@ -208,8 +199,7 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
 ```
 
 Production checklist: set a strong `JWT_SECRET`, restrict `CORS_ORIGINS` to your domain, serve over HTTPS,
-make `backend/uploads/` persistent (uploaded icons are stored there), and add your production redirect URI in
-Entra ID if you use Microsoft sign-in.
+and make `backend/uploads/` persistent (uploaded icons are stored there).
 
 ## Screenshots / Preview
 
