@@ -34,11 +34,13 @@ which apps appear as "General Apps", and targeted announcements. Changes appear 
 - **What's Going On**: priority-coloured announcements, a notification bell and a full announcements page
 - **eCanteen** demo module: card balance, spending-limit gauge and transaction history (mock data)
 - Sign in with **NIK + password**, or optionally with **Microsoft (Entra ID) single sign-on**
+  (the ID token is verified on the server)
 - Responsive portal layout for desktop and mobile; built-in Privacy Policy page
 
 **For administrators**
 - Department management (active/inactive, user counts)
-- User management with six roles: `Admin`, `CEO`, `CFO`, `DCFO`, `GM/DGM`, `User`
+- User management with six roles: `Admin`, `CEO`, `CFO`, `DCFO`, `GM/DGM`, `User`, including password
+  resets (there is deliberately no self-service reset; "Forgot Password?" directs users to an administrator)
 - Application card management with a visual icon picker, image upload (with crop/zoom), favicon auto-fetch or image URL
 - Per-card targeting by **role and department**; one-click "General App" toggle
 - Announcement management with priority, link, and role/department targeting
@@ -67,6 +69,7 @@ cerea/
 │   ├── models.py             SQLAlchemy models (tables are created automatically)
 │   ├── schemas.py            Pydantic request/response schemas
 │   ├── auth.py               Password hashing and JWT helpers
+│   ├── ms_auth.py            Server-side verification of Microsoft ID tokens
 │   ├── database.py           Database engine and sessions
 │   ├── seed.py               Creates tables, the first admin, and optional demo data
 │   ├── pyproject.toml        Dependencies (uv); requirements.txt for pip
@@ -140,7 +143,8 @@ npm install
 | `JWT_SECRET` | ✅ | Long random string used to sign tokens (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `TOKEN_EXPIRE_MINUTES` | | Session length in minutes (default `480`) |
 | `CORS_ORIGINS` | | Comma-separated allowed origins (default: the Vite dev server) |
-| `EMAIL_DOMAIN` | | Email domain used in Microsoft sign-in messages (default `example.com`) |
+| `EMAIL_DOMAIN` | | Required email domain for Microsoft sign-in, `{NIK}@domain` (default `example.com`) |
+| `MSAL_CLIENT_ID` / `MSAL_TENANT_ID` | | Entra ID app and tenant IDs the server uses to verify Microsoft ID tokens (same values as the `VITE_` ones). Empty = Microsoft sign-in disabled |
 | `ADMIN_NIK` / `ADMIN_PASSWORD` | | First admin account created by `seed.py` (password generated if empty) |
 | `DEMO_USER_PASSWORD` | | Password for demo users created by `seed.py --demo` (generated if empty) |
 
@@ -211,13 +215,12 @@ End-to-end application flow (sign-in, portal, admin workspace and the rules appl
 ## Project Status
 
 **Active development.** Core portal, admin management, RBAC targeting and announcements are working.
-The eCanteen module currently uses mock data. Before running Cerea in production, review the open items below.
+The eCanteen module currently uses mock data.
 
 **Known limitations / roadmap**
-- `POST /auth/forgot-password` issues a temporary password to anyone who knows a NIK; it should be
-  replaced with a verified reset flow (e.g. email link or admin approval).
-- `POST /auth/microsoft` trusts the email sent by the browser; it should verify the Microsoft ID token on
-  the server before issuing a session.
+- No self-service password reset. Resets are done by an administrator; an email-verified flow could be added.
+- Users can't change their own password yet; an administrator sets it.
+- No login rate limiting yet; put the API behind a reverse proxy with rate limits in production.
 - No automated test suite or linter configuration yet.
 - No database migration tool. Tables are created on startup, but later schema changes need manual updates.
 

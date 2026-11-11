@@ -16,7 +16,7 @@ import uuid
 from dotenv import load_dotenv
 load_dotenv()
 
-import models, schemas, auth
+import models, schemas, auth, ms_auth
 from database import get_db, engine
 
 # Auto-create tabel jika belum ada
@@ -124,36 +124,38 @@ def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
 @app.post("/auth/microsoft", response_model=schemas.Token, tags=["🔑 Auth"])
 def microsoft_sso(req: schemas.MicrosoftLoginRequest, db: Session = Depends(get_db)):
     """
-    Alur verifikasi SSO Microsoft:
-    1. Frontend sudah validasi akun via MSAL (tenant + client)
-    2. Frontend ekstrak NIK dari email (prefix sebelum @)
-    3. Endpoint ini cocokkan NIK ke database lokal
-    4. Return JWT portal + data user (role, department, dll)
-
-    Strict: HANYA lookup by NIK — tidak ada fallback display_name.
-    Jika NIK tidak ditemukan, user harus didaftarkan admin terlebih dahulu.
+    Microsoft SSO:
+    1. Frontend signs in with MSAL and sends the raw Microsoft ID token
+    2. The server verifies the token signature, audience, issuer, tenant and expiry
+    3. The email is read from the VERIFIED token only, must be NIK@EMAIL_DOMAIN
+    4. The NIK must already exist in the local users table (no auto-provisioning)
     """
     import re as _re
 
-    # ── Validasi: email harus ada ─────────────────────────────────
-    if not req.email or "@" not in req.email:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            detail="Format email tidak valid. Email Microsoft tidak diterima."
-        )
+    if not ms_auth.is_configured():
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Microsoft sign-in is not configured on this server")
+    try:
+        claims = ms_auth.verify_id_token(req.id_token)
+    except ms_auth.MicrosoftTokenError as e:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED,
+                            detail=f"Microsoft sign-in could not be verified: {e}")
+    except OSError:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Could not reach Microsoft to verify the sign-in. Try again later.")
 
-    # ── Ekstrak NIK dari prefix email (sebelum @) ─────────────────
-    nik_from_email = req.email.split("@")[0].strip().lower()
+    email = ms_auth.email_from_claims(claims)
+    nik_from_email, _, domain = email.partition("@")
 
-    # Validasi: prefix harus berupa angka (format NIK)
-    if not _re.match(r"^\d+$", nik_from_email):
+    # Email must be NIK@EMAIL_DOMAIN (prefix = digits only)
+    if domain != EMAIL_DOMAIN.lower() or not _re.match(r"^\d+$", nik_from_email):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
             detail=(
                 f"Format email tidak sesuai standar NIK. "
                 f"Email harus menggunakan format NIK@{EMAIL_DOMAIN} "
                 f"(contoh: 100123@{EMAIL_DOMAIN}). "
-                f"Email diterima: {req.email}"
+                f"Email diterima: {email or '-'}"
             )
         )
 
@@ -186,37 +188,9 @@ def get_me(current_user: models.User = Depends(get_current_user)):
     return _enrich_user(current_user)
 
 
-@app.post("/auth/forgot-password", tags=["🔑 Auth"])
-def forgot_password(body: schemas.ForgotPasswordRequest, db: Session = Depends(get_db)):
-    """
-    Reset password darurat — tanpa email.
-    Generate password sementara 8 karakter, tampilkan ke user di layar.
-    User wajib ganti setelah login pertama.
-    """
-    import secrets, string
- 
-    user = db.query(models.User).filter(models.User.nik == body.nik.strip()).first()
-    if not user:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND,
-            detail="NIK tidak ditemukan. Periksa kembali atau hubungi IT Department."
-        )
- 
-    # Generate password acak: huruf besar + angka, 8 karakter
-    chars   = string.ascii_uppercase + string.digits
-    temp_pw = "".join(secrets.choice(chars) for _ in range(8))
- 
-    # Simpan langsung ke DB (hashed)
-    user.password = auth.hash_password(temp_pw)
-    db.commit()
- 
-    return {
-        "message":       "Password sementara berhasil dibuat.",
-        "nik":           user.nik,
-        "full_name":     user.full_name,
-        "temp_password": temp_pw,
-        "peringatan":    "Segera ganti password ini setelah berhasil login.",
-    }
+# Password reset: there is intentionally no self-service endpoint.
+# An unauthenticated "reset by NIK" lets anyone take over any account.
+# Admins reset passwords via PUT /users/{id} (User Management in the dashboard).
 
 
 # ════════════════════════════════════════════════════════════

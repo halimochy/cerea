@@ -26,27 +26,14 @@ class LoginRequest(BaseModel):
 
 
 class MicrosoftLoginRequest(BaseModel):
-    email:         str
-    display_name:  str
-    nik_extracted: Optional[str] = None
-    ms_id:         Optional[str] = None
+    # Raw Microsoft Entra ID token from MSAL; verified on the server (ms_auth.py)
+    id_token: str
 
 
 class Token(BaseModel):
     access_token: str
     token_type:   str = "bearer"
     user:         "UserResponse"
-
-
-class ForgotPasswordRequest(BaseModel):
-    nik: str
-
-    @field_validator("nik")
-    @classmethod
-    def nik_tidak_kosong(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("NIK tidak boleh kosong")
-        return v.strip()
 
 
 # ── Department ────────────────────────────────────────────────

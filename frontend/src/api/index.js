@@ -47,10 +47,9 @@ api.interceptors.response.use(
 
 export const authApi = {
   login:          (nik, password)              => api.post("/auth/login", { nik, password }),
-  microsoftLogin: (email, display_name, nik_extracted, ms_id) =>
-    api.post("/auth/microsoft", { email, display_name, nik_extracted, ms_id }),
+  // Sends the raw Microsoft ID token; the server verifies it before issuing a session
+  microsoftLogin: (idToken)                    => api.post("/auth/microsoft", { id_token: idToken }),
   me:             ()                           => api.get("/auth/me"),
-  forgotPassword: (nik)                        => api.post("/auth/forgot-password", { nik }),
 };
 
 export const departmentsApi = {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { COPYRIGHT_TEXT } from "../config/company";
+import { COMPANY, COPYRIGHT_TEXT } from "../config/company";
 import { useMsal } from "@azure/msal-react";
 import { useAuth } from "../context/AuthContext";
 import { authApi } from "../api";
@@ -11,27 +11,11 @@ import Icon from "../components/Icon";
 import cereaLogoWhite    from "../assets/cerea-logo-white.png";
 import cereaMark         from "../assets/cerea-mark.png";
 
-/* ─── Forgot Password Modal ──────────────────────────────────── */
+/* ─── Forgot Password Modal ──────────────────────────────────────
+   No self-service reset: an unauthenticated "reset by username" would
+   let anyone take over any account. Passwords are reset by an admin
+   in User Management (Admin Dashboard → Users → Edit → new password). */
 function ForgotPasswordModal({ onClose }) {
-  const [nik,    setNik]    = useState("");
-  const [step,   setStep]   = useState("input");
-  const [result, setResult] = useState(null);
-  const [errMsg, setErrMsg] = useState("");
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!nik.trim()) return;
-    setStep("loading");
-    try {
-      const res = await authApi.forgotPassword(nik.trim());
-      setResult(res.data);
-      setStep("success");
-    } catch (err) {
-      setErrMsg(err.response?.data?.detail ?? "An error occurred. Please try again.");
-      setStep("error");
-    }
-  }
-
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -39,57 +23,32 @@ function ForgotPasswordModal({ onClose }) {
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
           <div>
             <h3 style={{ fontSize:"0.80rem", fontWeight:700, color:"#1a1a1a", margin:0, fontFamily:"Montserrat,sans-serif" }}>Forgot Password</h3>
-            <p style={{ fontSize:"0.70rem", color:"#9ca3af", marginTop:3 }}>Reset using your employee NIK</p>
+            <p style={{ fontSize:"0.70rem", color:"#9ca3af", marginTop:3 }}>Password resets are handled by an administrator</p>
           </div>
-          <button onClick={onClose} style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"#f3f4f6", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#9ca3af" }}>
+          <button onClick={onClose} aria-label="Close" style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"#f3f4f6", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#9ca3af" }}>
             <Icon name="x" size={14} />
           </button>
         </div>
 
-        {(step === "input" || step === "loading" || step === "error") && (
-          <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            {step === "error" && (
-              <div style={{ padding:"10px 13px", borderRadius:8, background:"#fef2f2", border:"1px solid #fecaca", color:"#b91c1c", fontSize:"0.80rem" }}>
-                {errMsg}
-              </div>
-            )}
-            <div>
-              <label style={LS.label}>USERNAME</label>
-              <div style={LS.inputWrap}>
-                <Icon name="user" size={15} style={{ color:"#9ca3af", flexShrink:0 }} />
-                <input style={LS.input} type="text" placeholder="Enter your username" value={nik}
-                  onChange={e => { setNik(e.target.value); if (step==="error") setStep("input"); }} autoFocus />
-              </div>
-            </div>
-            <button type="submit" disabled={step==="loading" || !nik.trim()} style={{ ...LS.btnPrimary, opacity:step==="loading"||!nik.trim()?0.7:1 }}>
-              {step==="loading" ? "Processing…" : "Reset Password"}
-            </button>
-          </form>
-        )}
-
-        {step === "success" && result && (
-          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-            <div style={{ textAlign:"center" }}>
-              <div style={{ width:48, height:48, borderRadius:"50%", background:"#f0fdf4", border:"2px solid #86efac", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px" }}>
-                <Icon name="check" size={22} style={{ color:"#16a34a" }} />
-              </div>
-              <p style={{ fontWeight:700, color:"#1a1a1a", fontSize:"0.95rem", fontFamily:"Montserrat,sans-serif" }}>Password Reset!</p>
-              <p style={{ fontSize:"0.75rem", color:"#6b7280", marginTop:4 }}>Hi, <strong>{result.full_name}</strong></p>
-            </div>
-            <div style={{ background:"#f9fafb", border:"1.5px dashed #d1d5db", borderRadius:10, padding:"14px 16px", textAlign:"center" }}>
-              <p style={{ fontSize:"0.65rem", color:"#6b7280", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600 }}>Temporary Password</p>
-              <p style={{ fontFamily:"monospace", fontSize:"1.8rem", fontWeight:700, color:"#12365F", letterSpacing:"0.15em", margin:0 }}>{result.temp_password}</p>
-              <button onClick={() => navigator.clipboard?.writeText(result.temp_password)}
-                style={{ marginTop:8, fontSize:"0.70rem", color:"#12365F", background:"none", border:"none", cursor:"pointer", fontWeight:600, textDecoration:"underline" }}>
-                Copy to clipboard
-              </button>
-            </div>
-            <div style={{ background:"#fff7ed", border:"1px solid #fed7aa", borderRadius:8, padding:"10px 13px", fontSize:"0.72rem", color:"#c2410c", lineHeight:1.5 }}>
-              <strong>Please change this password</strong> immediately after login.
-            </div>
-            <button onClick={onClose} style={LS.btnPrimary}>Back to Login</button>
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ display:"flex", gap:12, alignItems:"flex-start", background:"#E8F2FF", border:"1px solid #C9DDFB", borderRadius:10, padding:"12px 14px" }}>
+            <Icon name="shield" size={18} style={{ color:"#2563EB", flexShrink:0, marginTop:1 }} />
+            <p style={{ fontSize:"0.76rem", color:"#0B1F3A", lineHeight:1.55, margin:0 }}>
+              For your account's security, passwords can't be reset from this page.
+              Please contact your <strong>{COMPANY.department}</strong> or a Cerea administrator
+              with your username. They will set a new password for you.
+            </p>
           </div>
-        )}
+          <ol style={{ fontSize:"0.74rem", color:"#4b5563", lineHeight:1.6, margin:0, paddingLeft:18, listStyle:"decimal" }}>
+            <li>Send your username to an administrator.</li>
+            <li>The administrator sets a temporary password in User Management.</li>
+            <li>Sign in and ask the administrator to change it to one only you know.</li>
+          </ol>
+          <p style={{ fontSize:"0.70rem", color:"#9ca3af", margin:0 }}>
+            Have a work Microsoft account? Try <strong>Login with Microsoft</strong> instead.
+          </p>
+          <button onClick={onClose} style={LS.btnPrimary}>Back to Login</button>
+        </div>
         <style>{`@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
       </div>
     </div>
@@ -173,7 +132,7 @@ export default function LoginPage() {
       setSsoStep(2);
       const nik = extractNikFromEmail(msEmail);
       if (!nik) throw new Error(`Invalid email format: "${msEmail}". Use NIK@${EMAIL_DOMAIN}`);
-      const res = await authApi.microsoftLogin(msEmail, msResult.account.name, nik, msResult.account.localAccountId);
+      const res = await authApi.microsoftLogin(msResult.idToken);
       setSsoStep(3);
       await new Promise(r => setTimeout(r, 500));
       login(res.data.user, res.data.access_token);
