@@ -458,6 +458,104 @@ export const ILLUSTRATIONS = {
     </>
   ),
 
+  /* ── Business apps ──────────────────────────────────────── */
+  budget: (g) => (
+    <>
+      <rect x="9" y="8" width="22" height="31" rx="4" fill={g.navy} />
+      <rect x="13" y="12" width="14" height="6.5" rx="1.6" fill={g.teal} />
+      {[22.5, 27.5, 32.5].map((y) => [13, 18.25, 23.5].map((x) => (
+        <rect key={`${x}-${y}`} x={x} y={y} width="3.5" height="3.2" rx="1" fill={W} opacity=".85" />
+      )))}
+      <circle cx="34" cy="32" r="8" fill={g.teal} stroke={W} strokeWidth="2" />
+      <path d="M29.6 35.2l3.2-3.2 2.2 2.2 3.6-3.9M35.6 30.1h3v3" stroke={W} strokeWidth="2" {...round} />
+    </>
+  ),
+
+  lms: (g) => (
+    <>
+      <path d="M14 22v6.5c0 3 4.5 5.5 10 5.5s10-2.5 10-5.5V22l-10 5z" fill={g.blue} />
+      <polygon points="24 9 41 17 24 25 7 17" fill={g.navy} stroke={N} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M38.5 18.2v8.3" stroke={T} strokeWidth="2.5" {...round} />
+      <circle cx="38.5" cy="29.5" r="2.8" fill={g.teal} />
+      <path d="M21.5 28.5l4.5 2.6-4.5 2.6z" fill={W} opacity=".9" />
+    </>
+  ),
+
+  recruitment: (g) => (
+    <>
+      <path d="M8 38a11 11 0 0 1 22 0v.5a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2z" fill={g.navy} />
+      <circle cx="19" cy="17" r="6.5" fill={g.blue} />
+      <path d="M37.8 31.8 41.5 35.5" stroke={T} strokeWidth="4" {...round} />
+      <circle cx="33" cy="27" r="7" fill={W} stroke={T} strokeWidth="3.2" />
+      <path d="M30 27.2l2.1 2.1 3.9-4.3" stroke={T} strokeWidth="2.2" {...round} />
+    </>
+  ),
+
+  networkMonitor: (g) => (
+    <>
+      <rect x="7" y="8" width="34" height="25" rx="4" fill={g.navy} />
+      <rect x="20.5" y="33" width="7" height="4" fill={N} />
+      <rect x="15" y="36.5" width="18" height="3.5" rx="1.75" fill={N} />
+      <path d="M24 20.5 14 14.5M24 20.5l10-6M24 20.5l-9 7M24 20.5l9 7" stroke={W} strokeWidth="1.8" opacity=".5" {...round} />
+      <circle cx="14" cy="14.5" r="2.4" fill={W} />
+      <circle cx="34" cy="14.5" r="2.4" fill={W} />
+      <circle cx="15" cy="27.5" r="2.4" fill={B} stroke={W} strokeWidth="1.2" />
+      <circle cx="33" cy="27.5" r="2.4" fill={B} stroke={W} strokeWidth="1.2" />
+      <circle cx="24" cy="20.5" r="3.6" fill={g.teal} stroke={W} strokeWidth="1.5" />
+    </>
+  ),
+
+  procurement: (g) => (
+    <>
+      <rect x="7" y="8" width="21" height="27" rx="3.5" fill={g.blue} />
+      <rect x="11" y="13" width="12" height="2.5" rx="1.25" fill={W} />
+      <rect x="11" y="18.5" width="9" height="2.5" rx="1.25" fill={W} opacity=".75" />
+      <rect x="11" y="24" width="7" height="2.5" rx="1.25" fill={W} opacity=".75" />
+      <polygon points="33 21 42 25.5 33 30 24 25.5" fill={TS} stroke={TS} strokeWidth="1.2" strokeLinejoin="round" />
+      <polygon points="24 25.5 33 30 33 40 24 35.5" fill={g.teal} stroke={T} strokeWidth="1.2" strokeLinejoin="round" />
+      <polygon points="33 30 42 25.5 42 35.5 33 40" fill={g.navy} stroke={N} strokeWidth="1.2" strokeLinejoin="round" />
+    </>
+  ),
+
+  gatePass: (g) => (
+    <>
+      <path d="M19 9.5 24 5l5 4.5" stroke={N} strokeWidth="2.5" {...round} />
+      <rect x="12" y="9" width="24" height="31" rx="4.5" fill={g.blue} />
+      <rect x="20" y="12" width="8" height="2.6" rx="1.3" fill={N} opacity=".5" />
+      <circle cx="24" cy="21" r="4.6" fill={W} />
+      <rect x="17" y="28.5" width="14" height="2.5" rx="1.25" fill={W} opacity=".85" />
+      <rect x="17" y="33" width="9" height="2.5" rx="1.25" fill={W} opacity=".6" />
+      <circle cx="36" cy="34" r="6.5" fill={g.teal} stroke={W} strokeWidth="2" />
+      <path d="M33.2 34.2l2 2 3.8-4.2" stroke={W} strokeWidth="2.2" {...round} />
+    </>
+  ),
+
+  warehouse: (g) => (
+    <>
+      <rect x="9" y="19" width="30" height="21" rx="2" fill={g.blue} />
+      <path d="M7 18.5 24 9l17 9.5v3H7z" fill={g.navy} stroke={N} strokeWidth="1.5" strokeLinejoin="round" />
+      <rect x="14" y="25" width="20" height="15" rx="1.5" fill={N} />
+      <rect x="16.5" y="32.5" width="7" height="7.5" rx="1.2" fill={g.teal} />
+      <rect x="24.5" y="32.5" width="7" height="7.5" rx="1.2" fill={TS} />
+      <rect x="20.5" y="26.5" width="7" height="6" rx="1.2" fill={g.teal} />
+    </>
+  ),
+
+  hrms: (g) => (
+    <>
+      <path d="M24 18.5v4.5M14 23h20M14 23v5.5M34 23v5.5" stroke={T} strokeWidth="2.6" {...round} />
+      <circle cx="24" cy="13" r="6" fill={g.blue} />
+      <circle cx="24" cy="11.4" r="2.1" fill={W} />
+      <path d="M20.6 16.6a3.4 3.4 0 0 1 6.8 0z" fill={W} />
+      <rect x="8" y="28.5" width="12" height="11.5" rx="3.5" fill={g.navy} />
+      <circle cx="14" cy="32.6" r="2" fill={T} />
+      <path d="M10.6 38.3a3.4 3.4 0 0 1 6.8 0z" fill={W} opacity=".9" />
+      <rect x="28" y="28.5" width="12" height="11.5" rx="3.5" fill={g.navy} />
+      <circle cx="34" cy="32.6" r="2" fill={T} />
+      <path d="M30.6 38.3a3.4 3.4 0 0 1 6.8 0z" fill={W} opacity=".9" />
+    </>
+  ),
+
   home: (g) => (
     <>
       <path d="M12 21v15a3 3 0 0 0 3 3h18a3 3 0 0 0 3-3V21L24 11z" fill={g.blue} />
@@ -479,6 +577,14 @@ export const ALIASES = {
   wrench: "tool",
   canteen: "utensils",
   helpdesk: "helpCircle",
+  budgeting: "budget",
+  learning: "lms",
+  eRecruitment: "recruitment",
+  network: "networkMonitor",
+  eProcurement: "procurement",
+  gatepass: "gatePass",
+  inventory: "warehouse",
+  hr: "hrms",
 };
 
 /* Category → icon + badge tone (used by filters, previews & cards) */
@@ -498,6 +604,7 @@ export const ICON_OPTIONS = [
   "user", "users", "briefcase", "building", "shield", "alertOctagon",
   "wallet", "shoppingCart", "tag", "package", "truck",
   "settings", "tool", "flask", "droplets", "anchor", "zap", "map", "utensils", "home",
+  "budget", "lms", "recruitment", "networkMonitor", "procurement", "gatePass", "warehouse", "hrms",
 ];
 
 export function resolveIconName(name) {

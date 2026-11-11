@@ -53,14 +53,20 @@ DEMO_CARDS = [
     ("Webmail", "Corporate email access", "https://example.com/mail", "Application", ALL_ROLES, [], True, "send"),
     ("Employee Handbook", "Policies and guidelines", "https://example.com/handbook", "Form", ALL_ROLES, [], True, "bookOpen"),
     ("IT Helpdesk", "Report IT issues and track tickets", "https://example.com/helpdesk", "Application", ALL_ROLES, [], True, "helpCircle"),
-    ("HRMS", "Human resource management", "https://example.com/hrms", "Application", ALL_ROLES, ["Human Resources"], False, "users"),
+    ("HRMS BIPO", "Human resource management", "https://example.com/hrms", "Application", ALL_ROLES, ["Human Resources"], False, "hrms"),
     ("Payroll Portal", "Payslips and payroll reports", "https://example.com/payroll", "Application", ["Admin", "CFO", "DCFO"], ["Finance"], False, "wallet"),
     ("Finance Dashboard", "Budget and cash flow overview", "https://example.com/finance", "Dashboard", ["Admin", "CEO", "CFO", "DCFO"], [], False, "barChart2"),
     ("Operations Dashboard", "Daily operations performance", "https://example.com/operations", "Dashboard", ["Admin", "CEO", "GM/DGM"], [], False, "gauge"),
-    ("Network Monitoring", "Server and network status", "https://example.com/network", "Dashboard", ["Admin"], ["Information Technology"], False, "wifi"),
+    ("Network Monitoring", "Server and network status", "https://example.com/network", "Dashboard", ["Admin"], ["Information Technology"], False, "networkMonitor"),
     ("Leave Request Form", "Submit leave and time-off requests", "https://example.com/leave", "Form", ALL_ROLES, [], False, "calendar"),
     ("Purchase Request", "Request goods and services", "https://example.com/purchase", "Form", ["Admin", "GM/DGM", "User"], ["Procurement", "Operations"], False, "shoppingCart"),
     ("Campaign Tracker", "Marketing campaign progress", "https://example.com/campaigns", "Application", ["Admin", "GM/DGM", "User"], ["Marketing"], False, "pieChart"),
+    ("Budgeting", "Budget planning and tracking", "https://example.com/budgeting", "Application", ALL_ROLES, [], False, "budget"),
+    ("Learning LMS", "Online courses and training", "https://example.com/lms", "Application", ALL_ROLES, [], False, "lms"),
+    ("e-Recruitment", "Job openings and candidate tracking", "https://example.com/recruitment", "Application", ALL_ROLES, [], False, "recruitment"),
+    ("e-Procurement", "Purchase requests and vendor orders", "https://example.com/procurement", "Application", ALL_ROLES, [], False, "procurement"),
+    ("GatePass Information", "Gate pass requests and status", "https://example.com/gatepass", "Form", ALL_ROLES, [], False, "gatePass"),
+    ("Warehouse Catalog", "Stock items and warehouse inventory", "https://example.com/warehouse", "Application", ALL_ROLES, [], False, "warehouse"),
 ]
 
 # activity, description, link, label, priority, roles, departments, days_ago
