@@ -34,7 +34,7 @@ which apps appear as "General Apps", and targeted announcements. Changes appear 
 - **What's Going On**: priority-coloured announcements, a notification bell and a full announcements page
 - **eCanteen** demo module: card balance, spending-limit gauge and transaction history (mock data)
 - Sign in with **NIK + password**
-- Optional **Login as Guest**: one click, no NIK or password, read-only access to General Apps and
+- Optional **Login as Guest**: one click, no NIK or password, read-only access to all apps and
   announcements meant for everyone (enable with `GUEST_LOGIN_ENABLED=true`)
 - Responsive portal layout for desktop and mobile; built-in Privacy Policy page
 

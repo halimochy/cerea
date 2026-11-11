@@ -34,7 +34,7 @@ CORS_ORIGINS = [
         "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
     ).split(",") if o.strip()
 ]
-# "Login as Guest": read-only access to General Apps + announcements for everyone.
+# "Login as Guest": read-only access to all apps + announcements for everyone.
 # Off unless explicitly enabled. Disabling it also invalidates guest tokens already issued.
 GUEST_LOGIN_ENABLED = os.getenv("GUEST_LOGIN_ENABLED", "false").strip().lower() in ("1", "true", "yes")
 GUEST_TOKEN_MINUTES = int(os.getenv("GUEST_TOKEN_MINUTES", "60"))
@@ -163,12 +163,11 @@ def get_viewer(
 
 
 def _filter_cards_for(q, viewer: Viewer):
-    """RBAC for cards: Admin sees all; Guest sees General Apps only;
-    others need a role match AND a department match."""
-    if viewer.role == "Admin":
+    """RBAC for cards: Admin and Guest see all cards (guests are read-only);
+    others need a role match AND a department match.
+    Which cards appear under "General Apps" is the admin's is_general flag."""
+    if viewer.role in ("Admin", "Guest"):
         return q
-    if viewer.role == "Guest":
-        return q.filter(models.ApplicationCard.is_general == True)  # noqa: E712
     # Layer 1 — Role RBAC
     q = q.filter(
         func.json_contains(
@@ -229,7 +228,7 @@ def auth_options():
 @app.post("/auth/guest", response_model=schemas.Token, tags=["🔑 Auth"])
 def guest_login():
     """
-    Read-only guest session (no NIK/password): General Apps + announcements
+    Read-only guest session (no NIK/password): all apps + announcements
     targeted at everyone. No admin access, no department data, clicks not counted.
     """
     if not GUEST_LOGIN_ENABLED:

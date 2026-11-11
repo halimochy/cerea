@@ -281,7 +281,7 @@ export default function LoginPage() {
           )}
           {guestEnabled && (
             <p style={{ textAlign:"center", fontSize:"0.66rem", color:"#9ca3af", marginTop:6 }}>
-              Guest access is read-only and shows general apps only.
+              Guest access is read-only.
             </p>
           )}
 

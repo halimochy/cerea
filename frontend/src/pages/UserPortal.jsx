@@ -476,7 +476,7 @@ export default function UserPortal() {
 
   const isGuest = user?.role === "Guest";
 
-  // Guests: the server already limits them to General Apps, so no role check here
+  // Guests see every app (read-only); the server returns all cards, so no role check here
   const accessibleCards = isGuest ? cards : cards.filter(c => {
     try {
       const allowedRoles = typeof c.target_roles === "string"
@@ -632,7 +632,7 @@ export default function UserPortal() {
               <h2 style={{ fontSize:"1.15rem", fontWeight:600, color:"white", letterSpacing:"-0.3px", margin:"0 0 7px", fontFamily:FONT }}>{user?.full_name}</h2>
               <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
                 {[{icon:"shield",text:user?.role},
-                  isGuest ? {icon:"eye",text:"Read-only · general apps only"} : {icon:"user",text:`NIK: ${user?.nik}`},
+                  isGuest ? {icon:"eye",text:"Read-only access"} : {icon:"user",text:`NIK: ${user?.nik}`},
                   ...(user?.department?[{icon:"briefcase",text:user.department}]:[])
                 ].map(b=>(
                   <span key={b.text} style={{ display:"inline-flex", alignItems:"center", gap:4,
@@ -696,7 +696,7 @@ export default function UserPortal() {
           <SectionRow
             title="All Apps"
             subtitle={isGuest
-              ? `${allApps.length} general applications available to guests`
+              ? `${allApps.length} applications available to guests`
               : `${allApps.length} applications available for role ${user?.role}`}
             cards={allApps}
             loading={loading}
