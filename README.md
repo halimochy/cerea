@@ -201,6 +201,36 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
 Production checklist: set a strong `JWT_SECRET`, restrict `CORS_ORIGINS` to your domain, serve over HTTPS,
 and make `backend/uploads/` persistent (uploaded icons are stored there).
 
+### Deploy the frontend on Netlify and the backend on Railway
+
+Netlify hosts only the static frontend. The API and database run on [Railway](https://railway.com)
+using the included `backend/Dockerfile` (any container host with MySQL works the same way).
+
+**1. Backend + database (Railway)**
+1. Create a project → **Deploy from GitHub repo** → select this repository, and set the service's
+   **Root Directory** to `backend` (it builds `backend/Dockerfile`).
+2. In the same project add a **MySQL** database.
+3. On the backend service add these **Variables**:
+
+   | Variable | Value |
+   | --- | --- |
+   | `DATABASE_URL` | `${{MySQL.MYSQL_URL}}` (reference the database service; `mysql://` URLs are accepted) |
+   | `JWT_SECRET` | a long random string |
+   | `ADMIN_PASSWORD` | a strong password for the `admin` account |
+   | `GUEST_LOGIN_ENABLED` | `true` to show **Login as Guest** |
+   | `SEED_DEMO` | `true` to load demo data on startup (optional) |
+   | `CORS_ORIGINS` | your Netlify URL, e.g. `https://your-site.netlify.app` |
+
+4. Add a **Volume** to the backend service mounted at `/app/uploads` so uploaded icons survive redeploys.
+5. **Settings → Networking → Generate Domain** and open `https://<your-backend>/health` to confirm it returns `{"status":"ok"}`.
+
+The container creates the tables and the admin account on every start (`seed.py` is safe to repeat).
+
+**2. Frontend (Netlify)**
+1. In `netlify.toml`, uncomment the `/api/*` rule and replace `YOUR-BACKEND-URL` with your Railway domain.
+2. In Netlify → *Site configuration → Environment variables* set `VITE_API_BASE_URL` to the same Railway URL
+   (uploaded icons are loaded directly from the backend), then trigger a redeploy.
+
 ## Screenshots / Preview
 
 End-to-end application flow (sign-in, portal, admin workspace and the rules applied throughout):

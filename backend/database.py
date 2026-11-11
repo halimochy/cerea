@@ -25,6 +25,11 @@ if not DATABASE_URL:
         "MariaDB/MySQL connection, e.g. mysql+pymysql://USER:PASSWORD@localhost:3306/cerea"
     )
 
+# Hosting providers (Railway, Aiven, ...) hand out plain "mysql://" URLs;
+# SQLAlchemy needs the PyMySQL driver name in the scheme.
+if DATABASE_URL.startswith("mysql://"):
+    DATABASE_URL = "mysql+pymysql://" + DATABASE_URL[len("mysql://"):]
+
 # Buat engine — ini adalah "jembatan" antara Python dan MariaDB
 engine = create_engine(
     DATABASE_URL,
