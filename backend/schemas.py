@@ -33,7 +33,11 @@ class MicrosoftLoginRequest(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type:   str = "bearer"
-    user:         "UserResponse"
+    user:         "SessionUserResponse"
+
+
+class AuthOptions(BaseModel):
+    guest_login: bool
 
 
 # ── Department ────────────────────────────────────────────────
@@ -109,6 +113,11 @@ class UserResponse(UserBase):
     department_name: Optional[str]      = None
 
     model_config = {"from_attributes": True}
+
+
+class SessionUserResponse(UserResponse):
+    """The signed-in identity: a real user, or the read-only "Guest" (id 0, not in the DB)."""
+    role: Literal["Admin", "CEO", "CFO", "DCFO", "GM/DGM", "User", "Guest"]
 
 
 # ── Application Card ─────────────────────────────────────────

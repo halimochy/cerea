@@ -474,7 +474,10 @@ export default function UserPortal() {
 
   // ── Section logic ──────────────────────────────────────────
 
-  const accessibleCards = cards.filter(c => {
+  const isGuest = user?.role === "Guest";
+
+  // Guests: the server already limits them to General Apps, so no role check here
+  const accessibleCards = isGuest ? cards : cards.filter(c => {
     try {
       const allowedRoles = typeof c.target_roles === "string"
         ? JSON.parse(c.target_roles) : c.target_roles;
@@ -491,7 +494,7 @@ export default function UserPortal() {
 
   const roleBadgeColor = {
     Admin:"#12365F", CEO:"#7e22ce", CFO:"#1d4ed8",
-    DCFO:"#065f46", "GM/DGM":"#c2410c", User:"#374151",
+    DCFO:"#065f46", "GM/DGM":"#c2410c", User:"#374151", Guest:"#0F766E",
   }[user?.role] ?? "#374151";
 
   return (
@@ -554,7 +557,7 @@ export default function UserPortal() {
           <div style={{ display:"flex", alignItems:"center", gap:12, flexShrink:0 }}>
             <div className="up-hide-sm" style={{ textAlign:"right" }}>
               <p style={{ fontSize:"0.75rem", fontWeight:600, color:"#1a1a1a", margin:0, lineHeight:1.2 }}>{user?.full_name}</p>
-              <p style={{ fontSize:"0.65rem", color:"#9ca3af", margin:0, marginTop:2 }}>NIK: {user?.nik}</p>
+              <p style={{ fontSize:"0.65rem", color:"#9ca3af", margin:0, marginTop:2 }}>{isGuest ? "Read-only access" : `NIK: ${user?.nik}`}</p>
             </div>
             {/* Role badge */}
             <div style={{ padding:"3px 10px", borderRadius:20, background:roleBadgeColor+"18",
@@ -628,7 +631,8 @@ export default function UserPortal() {
               <p style={{ fontSize:"0.68rem", color:"rgba(255,255,255,0.55)", marginBottom:3, fontFamily:FONT }}>Hello,</p>
               <h2 style={{ fontSize:"1.15rem", fontWeight:600, color:"white", letterSpacing:"-0.3px", margin:"0 0 7px", fontFamily:FONT }}>{user?.full_name}</h2>
               <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                {[{icon:"shield",text:user?.role},{icon:"user",text:`NIK: ${user?.nik}`},
+                {[{icon:"shield",text:user?.role},
+                  isGuest ? {icon:"eye",text:"Read-only · general apps only"} : {icon:"user",text:`NIK: ${user?.nik}`},
                   ...(user?.department?[{icon:"briefcase",text:user.department}]:[])
                 ].map(b=>(
                   <span key={b.text} style={{ display:"inline-flex", alignItems:"center", gap:4,
@@ -691,7 +695,9 @@ export default function UserPortal() {
         <div>
           <SectionRow
             title="All Apps"
-            subtitle={`${allApps.length} applications available for role ${user?.role}`}
+            subtitle={isGuest
+              ? `${allApps.length} general applications available to guests`
+              : `${allApps.length} applications available for role ${user?.role}`}
             cards={allApps}
             loading={loading}
             extraFilter={true}

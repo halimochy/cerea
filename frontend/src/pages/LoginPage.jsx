@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx — Cerea redesign
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { COMPANY, COPYRIGHT_TEXT } from "../config/company";
 import { useMsal } from "@azure/msal-react";
@@ -98,9 +98,32 @@ export default function LoginPage() {
   const [ssoStep,      setSsoStep]      = useState(null);
   const [error,        setError]        = useState("");
   const [showForgotPw, setShowForgotPw] = useState(false);
+  const [guestEnabled, setGuestEnabled] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
+
+  // Show "Login as Guest" only when the server has it enabled (GUEST_LOGIN_ENABLED)
+  useEffect(() => {
+    let alive = true;
+    authApi.options()
+      .then(r => { if (alive) setGuestEnabled(!!r.data?.guest_login); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   const redirectByRole = (role) =>
     navigate(role === "Admin" ? "/admin" : "/portal", { replace: true });
+
+  /* ── Guest Login (read-only, no NIK/password) ── */
+  const handleGuestLogin = async () => {
+    setError(""); setGuestLoading(true);
+    try {
+      const res = await authApi.guestLogin();
+      login(res.data.user, res.data.access_token);
+      redirectByRole(res.data.user.role);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Guest access is not available right now.");
+    } finally { setGuestLoading(false); }
+  };
 
   /* ── Manual Login ── */
   const handleLogin = async (e) => {
@@ -304,6 +327,27 @@ export default function LoginPage() {
             }
             {msLoading ? "Processing…" : "Login with Microsoft"}
           </button>
+
+          {/* Guest access — only when enabled on the server */}
+          {guestEnabled && !msLoading && (
+            <button onClick={handleGuestLogin} disabled={guestLoading || loading}
+              style={{ width:"100%", marginTop:10, padding:"11px 0", borderRadius:8,
+                background:"#E6FAF6", color:"#0B1F3A", border:"1.5px solid #9BE7DC",
+                cursor: guestLoading||loading ? "not-allowed" : "pointer",
+                fontFamily:"Montserrat,sans-serif", fontWeight:600, fontSize:"0.85rem",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                transition:"all .2s", opacity: loading ? 0.5 : 1 }}
+              onMouseOver={e => { if (!guestLoading&&!loading){ e.currentTarget.style.borderColor="#14B8A6"; e.currentTarget.style.background="#D5F5EE"; }}}
+              onMouseOut={e  => { e.currentTarget.style.borderColor="#9BE7DC"; e.currentTarget.style.background="#E6FAF6"; }}>
+              <Icon name="user" size={16} style={{ color:"#14B8A6" }} />
+              {guestLoading ? "Opening guest access…" : "Login as Guest"}
+            </button>
+          )}
+          {guestEnabled && !msLoading && (
+            <p style={{ textAlign:"center", fontSize:"0.66rem", color:"#9ca3af", marginTop:6 }}>
+              Guest access is read-only and shows general apps only.
+            </p>
+          )}
 
           {/* Email hint */}
           <p style={{ textAlign:"center", fontSize:"0.68rem", color:"#9ca3af", marginTop:10 }}>

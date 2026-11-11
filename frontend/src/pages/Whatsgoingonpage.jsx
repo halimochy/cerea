@@ -190,7 +190,7 @@ export default function WhatsGoingOnPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
             <div style={{ textAlign: "right" }}>
               <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "#1a1a1a", margin: 0, lineHeight: 1.2 }}>{user?.full_name}</p>
-              <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: 0, marginTop: 2 }}>NIK: {user?.nik}</p>
+              <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: 0, marginTop: 2 }}>{user?.role === "Guest" ? "Read-only access" : `NIK: ${user?.nik}`}</p>
             </div>
             <div style={{
               padding: "3px 10px", borderRadius: 20,

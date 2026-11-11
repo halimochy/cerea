@@ -1131,7 +1131,7 @@ function AnnouncementFormModal({ ann, departments, onClose, onSaved }) {
 }
 
 /* ─── Preview as user — picker ───────────────────────────────── */
-const PREVIEW_ROLES = ALL_ROLES.filter(r => r !== "Admin");
+const PREVIEW_ROLES = [...ALL_ROLES.filter(r => r !== "Admin"), "Guest"];  // Guest = "Login as Guest" view
 
 function PreviewPicker({ depts, users, onClose, onStart }) {
   const [mode,   setMode]   = useState("role");          // "role" | "user"

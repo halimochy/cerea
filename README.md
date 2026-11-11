@@ -35,6 +35,8 @@ which apps appear as "General Apps", and targeted announcements. Changes appear 
 - **eCanteen** demo module: card balance, spending-limit gauge and transaction history (mock data)
 - Sign in with **NIK + password**, or optionally with **Microsoft (Entra ID) single sign-on**
   (the ID token is verified on the server)
+- Optional **Login as Guest**: one click, no NIK or password, read-only access to General Apps and
+  announcements meant for everyone (enable with `GUEST_LOGIN_ENABLED=true`)
 - Responsive portal layout for desktop and mobile; built-in Privacy Policy page
 
 **For administrators**
@@ -44,7 +46,7 @@ which apps appear as "General Apps", and targeted announcements. Changes appear 
 - Application card management with a visual icon picker, image upload (with crop/zoom), favicon auto-fetch or image URL
 - Per-card targeting by **role and department**; one-click "General App" toggle
 - Announcement management with priority, link, and role/department targeting
-- **Preview as user**: open the real portal as any role + department, or as a specific user, to check
+- **Preview as user**: open the real portal as any role + department, a specific user, or a guest, to check
   exactly which apps, announcements and Frequently Used items they see (read-only; clicks aren't counted)
 
 **Platform**
@@ -148,6 +150,8 @@ npm install
 | `CORS_ORIGINS` | | Comma-separated allowed origins (default: the Vite dev server) |
 | `EMAIL_DOMAIN` | | Required email domain for Microsoft sign-in, `{NIK}@domain` (default `example.com`) |
 | `MSAL_CLIENT_ID` / `MSAL_TENANT_ID` | | Entra ID app and tenant IDs the server uses to verify Microsoft ID tokens (same values as the `VITE_` ones). Empty = Microsoft sign-in disabled |
+| `GUEST_LOGIN_ENABLED` | | `true` shows **Login as Guest** on the login page (default `false`). Turning it off also ends existing guest sessions |
+| `GUEST_TOKEN_MINUTES` | | Guest session length in minutes (default `60`) |
 | `ADMIN_NIK` / `ADMIN_PASSWORD` | | First admin account created by `seed.py` (password generated if empty) |
 | `DEMO_USER_PASSWORD` | | Password for demo users created by `seed.py --demo` (generated if empty) |
 

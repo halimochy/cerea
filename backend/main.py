@@ -37,6 +37,11 @@ CORS_ORIGINS = [
 # Email domain for Microsoft sign-in ({NIK}@EMAIL_DOMAIN) — used in messages
 EMAIL_DOMAIN = os.getenv("EMAIL_DOMAIN", "example.com")
 
+# "Login as Guest": read-only access to General Apps + announcements for everyone.
+# Off unless explicitly enabled. Disabling it also invalidates guest tokens already issued.
+GUEST_LOGIN_ENABLED = os.getenv("GUEST_LOGIN_ENABLED", "false").strip().lower() in ("1", "true", "yes")
+GUEST_TOKEN_MINUTES = int(os.getenv("GUEST_TOKEN_MINUTES", "60"))
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -71,6 +76,21 @@ security = HTTPBearer()
 # DEPENDENCIES
 # ════════════════════════════════════════════════════════════
 
+class GuestUser:
+    """Read-only visitor from "Login as Guest". Not stored in the database."""
+    id            = None
+    nik           = "guest"
+    full_name     = "Guest"
+    role          = "Guest"
+    department    = None
+    department_id = None
+    is_guest      = True
+
+    def as_response(self) -> dict:
+        return {"id": 0, "nik": self.nik, "full_name": self.full_name, "role": self.role,
+                "department": None, "department_id": None, "department_name": None}
+
+
 def get_current_user(
     creds: HTTPAuthorizationCredentials = Depends(security),
     db:    Session = Depends(get_db),
@@ -79,6 +99,10 @@ def get_current_user(
     if not payload:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED,
                             detail="Token tidak valid atau kadaluarsa")
+    if payload.get("guest"):
+        if not GUEST_LOGIN_ENABLED:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Guest access is disabled")
+        return GuestUser()
     user = db.query(models.User).filter(
         models.User.nik == payload.get("sub")
     ).first()
@@ -130,6 +154,8 @@ def get_viewer(
             raise HTTPException(404, detail="Preview user not found")
         return Viewer(target.id, target.role, target.department_id, is_preview=True)
 
+    if as_role == "Guest":
+        return Viewer(None, "Guest", None, is_preview=True)
     if as_role not in models.VALID_ROLES:
         raise HTTPException(400, detail=f"Unknown role '{as_role}'")
     if as_department_id and not db.query(models.Department).filter(
@@ -140,9 +166,12 @@ def get_viewer(
 
 
 def _filter_cards_for(q, viewer: Viewer):
-    """RBAC for cards: Admin sees all; others need a role match AND a department match."""
+    """RBAC for cards: Admin sees all; Guest sees General Apps only;
+    others need a role match AND a department match."""
     if viewer.role == "Admin":
         return q
+    if viewer.role == "Guest":
+        return q.filter(models.ApplicationCard.is_general == True)  # noqa: E712
     # Layer 1 — Role RBAC
     q = q.filter(
         func.json_contains(
@@ -249,9 +278,33 @@ def microsoft_sso(req: schemas.MicrosoftLoginRequest, db: Session = Depends(get_
     return {"access_token": token, "token_type": "bearer", "user": _enrich_user(user)}
 
 
-@app.get("/auth/me", response_model=schemas.UserResponse, tags=["🔑 Auth"])
+@app.get("/auth/me", response_model=schemas.SessionUserResponse, tags=["🔑 Auth"])
 def get_me(current_user: models.User = Depends(get_current_user)):
+    if isinstance(current_user, GuestUser):
+        return current_user.as_response()
     return _enrich_user(current_user)
+
+
+@app.get("/auth/options", response_model=schemas.AuthOptions, tags=["🔑 Auth"])
+def auth_options():
+    """Public: which optional sign-in methods the login page should offer."""
+    return {"guest_login": GUEST_LOGIN_ENABLED}
+
+
+@app.post("/auth/guest", response_model=schemas.Token, tags=["🔑 Auth"])
+def guest_login():
+    """
+    Read-only guest session (no NIK/password): General Apps + announcements
+    targeted at everyone. No admin access, no department data, clicks not counted.
+    """
+    if not GUEST_LOGIN_ENABLED:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Guest access is disabled")
+    from datetime import timedelta
+    token = auth.create_access_token(
+        {"sub": "guest", "role": "Guest", "guest": True},
+        expires_delta=timedelta(minutes=GUEST_TOKEN_MINUTES),
+    )
+    return {"access_token": token, "token_type": "bearer", "user": GuestUser().as_response()}
 
 
 # Password reset: there is intentionally no self-service endpoint.
@@ -267,13 +320,16 @@ def get_me(current_user: models.User = Depends(get_current_user)):
 def list_departments(
     active_only: bool = Query(False, description="True = hanya departemen aktif"),
     db:          Session = Depends(get_db),
-    _:           models.User = Depends(get_current_user),   # semua user login bisa akses (untuk dropdown)
+    current_user: models.User = Depends(get_current_user),   # semua user login bisa akses (untuk dropdown)
 ):
     """
     Mengambil daftar departemen.
     - active_only=false (default) → semua departemen (untuk halaman admin)
     - active_only=true            → hanya yang aktif (untuk dropdown form user)
+    Guests can't list departments (internal organisation data).
     """
+    if isinstance(current_user, GuestUser):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not available for guests")
     q = db.query(models.Department)
     if active_only:
         q = q.filter(models.Department.is_active == True)
@@ -593,6 +649,8 @@ def record_card_click(
     ).first()
     if not card:
         raise HTTPException(404, detail="Kartu tidak ditemukan")
+    if isinstance(current_user, GuestUser):
+        return {"message": "Click not recorded for guests", "card_id": card_id}
 
     existing = db.query(models.CardClick).filter(
         models.CardClick.user_id == current_user.id,
