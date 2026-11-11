@@ -1,0 +1,32 @@
+# ================================================================
+# Render Blueprint: Cerea backend (FastAPI) as a Docker web service.
+# The database is external (e.g. Supabase PostgreSQL); see README → Deployment.
+# Render → New → Blueprint → select this repository.
+# ================================================================
+services:
+  - type: web
+    name: cerea-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      # Supabase → Connect → "Session pooler" connection string (postgresql://...)
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # Password for the "admin" account (created on first start)
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Show the "Login as Guest" button
+      - key: GUEST_LOGIN_ENABLED
+        value: "true"
+      # Load demo departments, users, apps and announcements on startup
+      - key: SEED_DEMO
+        value: "true"
+      # Your Netlify site, e.g. https://your-site.netlify.app
+      - key: CORS_ORIGINS
+        sync: false

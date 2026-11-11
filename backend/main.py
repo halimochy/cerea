@@ -8,7 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast
+from sqlalchemy.dialects.postgresql import JSONB
 from typing import List, Optional
 import os
 import uuid
@@ -168,6 +169,20 @@ def _filter_cards_for(q, viewer: Viewer):
     Which cards appear under "General Apps" is the admin's is_general flag."""
     if viewer.role in ("Admin", "Guest"):
         return q
+
+    # PostgreSQL (e.g. Supabase): same rules with JSONB operators
+    if engine.dialect.name == "postgresql":
+        roles = cast(models.ApplicationCard.target_roles, JSONB)
+        depts = cast(models.ApplicationCard.target_department, JSONB)
+        q = q.filter(roles.contains([viewer.role]))
+        if viewer.department_id:
+            return q.filter(
+                (func.jsonb_array_length(depts) == 0)
+                | depts.contains([viewer.department_id])
+            )
+        return q.filter(func.jsonb_array_length(depts) == 0)
+
+    # MySQL / MariaDB
     # Layer 1 — Role RBAC
     q = q.filter(
         func.json_contains(

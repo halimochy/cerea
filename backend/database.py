@@ -22,21 +22,29 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError(
         "DATABASE_URL is not set. Copy backend/.env.example to backend/.env and fill in your "
-        "MariaDB/MySQL connection, e.g. mysql+pymysql://USER:PASSWORD@localhost:3306/cerea"
+        "MariaDB/MySQL connection, e.g. mysql+pymysql://USER:PASSWORD@localhost:3306/cerea "
+        "(or a PostgreSQL one, e.g. postgresql://USER:PASSWORD@HOST:5432/postgres for Supabase)"
     )
 
-# Hosting providers (Railway, Aiven, ...) hand out plain "mysql://" URLs;
-# SQLAlchemy needs the PyMySQL driver name in the scheme.
+# Hosting providers hand out plain "mysql://" / "postgres://" URLs;
+# SQLAlchemy needs the driver name in the scheme.
 if DATABASE_URL.startswith("mysql://"):
     DATABASE_URL = "mysql+pymysql://" + DATABASE_URL[len("mysql://"):]
+elif DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql+psycopg2://" + DATABASE_URL[len("postgres://"):]
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = "postgresql+psycopg2://" + DATABASE_URL[len("postgresql://"):]
 
-# Buat engine — ini adalah "jembatan" antara Python dan MariaDB
+IS_POSTGRES = DATABASE_URL.startswith("postgresql")
+
+# Buat engine — ini adalah "jembatan" antara Python dan MariaDB / PostgreSQL
+# Hosted Postgres poolers (Supabase) allow few connections, so the pool is smaller there.
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,   # test koneksi sebelum pakai (auto-reconnect)
-    pool_recycle=3600,    # daur ulang koneksi setiap 1 jam
-    pool_size=10,         # jumlah koneksi paralel yang tersedia
-    max_overflow=20,      # koneksi tambahan jika pool penuh
+    pool_pre_ping=True,                    # test koneksi sebelum pakai (auto-reconnect)
+    pool_recycle=3600,                     # daur ulang koneksi setiap 1 jam
+    pool_size=5 if IS_POSTGRES else 10,    # jumlah koneksi paralel yang tersedia
+    max_overflow=5 if IS_POSTGRES else 20, # koneksi tambahan jika pool penuh
     echo=False,           # set True untuk mencetak query SQL ke terminal (debug)
 )
 

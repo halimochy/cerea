@@ -60,7 +60,7 @@ which apps appear as "General Apps", and targeted announcements. Changes appear 
 | Frontend | React 18, React Router 6, Vite 7, Axios, Tailwind CSS (base layer) + custom CSS |
 | Authentication | JWT (`python-jose`), bcrypt |
 | Backend | Python 3.12, FastAPI, Uvicorn, SQLAlchemy 2, Pydantic 2 |
-| Database | MariaDB or MySQL (via PyMySQL) |
+| Database | MariaDB / MySQL (PyMySQL) or PostgreSQL (psycopg2), e.g. Supabase |
 | Tooling | npm, uv (or pip + venv) |
 
 ## Project Structure
@@ -98,7 +98,7 @@ cerea/
 
 - **Node.js** 20.19+ (required by Vite 7) and npm
 - **Python** 3.12+, plus [uv](https://docs.astral.sh/uv/) (recommended) or pip
-- **MariaDB** 10.5+ or **MySQL** 8+
+- **MariaDB** 10.5+ or **MySQL** 8+ (or **PostgreSQL** 14+)
 
 ### 1. Clone
 
@@ -141,7 +141,7 @@ npm install
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `DATABASE_URL` | ✅ | SQLAlchemy URL, e.g. `mysql+pymysql://USER:PASSWORD@localhost:3306/cerea` |
+| `DATABASE_URL` | ✅ | SQLAlchemy URL: `mysql+pymysql://USER:PASSWORD@localhost:3306/cerea` for MariaDB/MySQL, or `postgresql://USER:PASSWORD@HOST:5432/postgres` for PostgreSQL. Plain `mysql://`, `postgres://` and `postgresql://` URLs from hosting providers are accepted |
 | `JWT_SECRET` | ✅ | Long random string used to sign tokens (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `TOKEN_EXPIRE_MINUTES` | | Session length in minutes (default `480`) |
 | `CORS_ORIGINS` | | Comma-separated allowed origins (default: the Vite dev server) |
@@ -201,10 +201,36 @@ uv run uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
 Production checklist: set a strong `JWT_SECRET`, restrict `CORS_ORIGINS` to your domain, serve over HTTPS,
 and make `backend/uploads/` persistent (uploaded icons are stored there).
 
-### Deploy the frontend on Netlify and the backend on Railway
+### Option A: Netlify (frontend) + Render (API) + Supabase (PostgreSQL), free tiers
 
-Netlify hosts only the static frontend. The API and database run on [Railway](https://railway.com)
-using the included `backend/Dockerfile` (any container host with MySQL works the same way).
+Netlify hosts only the static frontend. The API runs on [Render](https://render.com) from the included
+`render.yaml`, and the database is a [Supabase](https://supabase.com) PostgreSQL project.
+
+**1. Database (Supabase)**
+1. Create a project and note the database password.
+2. Click **Connect** and copy the **Session pooler** connection string
+   (`postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres`).
+   Use the pooler rather than the direct connection, which is IPv6-only. URL-encode special characters in the password.
+
+**2. API (Render)**
+1. **New → Blueprint** → select this repository (it reads `render.yaml`).
+2. Fill in the prompted variables: `DATABASE_URL` (the Supabase string), `ADMIN_PASSWORD`, and `CORS_ORIGINS`
+   (your Netlify URL, e.g. `https://your-site.netlify.app`). `JWT_SECRET` is generated for you;
+   `GUEST_LOGIN_ENABLED` and `SEED_DEMO` default to `true`.
+3. After the first deploy open `https://<your-service>.onrender.com/health`. It should return `{"status":"ok"}`.
+   Tables, the admin account and demo data are created on every start (`seed.py` is safe to repeat).
+
+> Free-tier notes: Render's free web service sleeps after ~15 minutes without traffic (the next request takes
+> 30-60 s) and has no persistent disk, so icons uploaded through the admin dashboard are lost on redeploy; use the
+> built-in preset icons. Free Supabase projects are paused after about a week of inactivity.
+
+**3. Frontend (Netlify)**
+1. In `netlify.toml`, uncomment the `/api/*` rule and replace `YOUR-BACKEND-URL` with your Render URL.
+2. In Netlify → *Site configuration → Environment variables* set `VITE_API_BASE_URL` to the same URL, then redeploy.
+
+### Option B: Netlify (frontend) + Railway (API + MySQL)
+
+The same container also runs on [Railway](https://railway.com) with its MySQL database.
 
 **1. Backend + database (Railway)**
 1. Create a project → **Deploy from GitHub repo** → select this repository, and set the service's
