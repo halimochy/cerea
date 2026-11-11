@@ -228,6 +228,41 @@ Netlify hosts only the static frontend. The API runs on [Render](https://render.
 1. In `netlify.toml`, uncomment the `/api/*` rule and replace `YOUR-BACKEND-URL` with your Render URL.
 2. In Netlify → *Site configuration → Environment variables* set `VITE_API_BASE_URL` to the same URL, then redeploy.
 
+### Option A2: Netlify (frontend) + Vercel (API) + Supabase (PostgreSQL), no credit card
+
+Vercel's free plan runs the FastAPI backend as a serverless function and needs no card. The backend detects
+Vercel automatically: connections are not pooled locally and **icon uploads are switched off** (the filesystem is
+read-only), so use the preset icons.
+
+**1. Database (Supabase)**: open **Connect → Direct** and copy the **Transaction pooler** string
+(`postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres`). URL-encode special
+characters in the password.
+
+**2. Seed the database once, from your computer** (creates the tables, the `admin` account and demo data):
+
+```bash
+cd backend
+# PowerShell:  $env:DATABASE_URL="<the string above>"; $env:JWT_SECRET="any-value"; $env:ADMIN_PASSWORD="<strong password>"
+# bash:        export DATABASE_URL="<the string above>" JWT_SECRET=any-value ADMIN_PASSWORD="<strong password>"
+uv run python seed.py --demo
+```
+
+**3. API (Vercel)**: *Add New → Project* → import this repository → set **Root Directory** to `backend`
+(the FastAPI preset is detected) → add these environment variables → **Deploy**:
+
+| Variable | Value |
+| --- | --- |
+| `DATABASE_URL` | the Supabase Transaction pooler string |
+| `JWT_SECRET` | a long random string |
+| `GUEST_LOGIN_ENABLED` | `true` |
+| `CORS_ORIGINS` | your Netlify URL, e.g. `https://your-site.netlify.app` |
+| `AUTO_CREATE_TABLES` | `false` (tables already exist after seeding; faster cold starts) |
+
+Open `https://<your-project>.vercel.app/health`. It should return `{"status":"ok"}`.
+
+**4. Frontend (Netlify)**: in `netlify.toml` uncomment the `/api/*` rule and set `to` to
+`https://<your-project>.vercel.app/:splat`, then redeploy. `VITE_API_BASE_URL` is not needed (no uploads).
+
 ### Option B: Netlify (frontend) + Railway (API + MySQL)
 
 The same container also runs on [Railway](https://railway.com) with its MySQL database.
