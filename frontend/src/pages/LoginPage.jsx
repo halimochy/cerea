@@ -1,0 +1,366 @@
+// src/pages/LoginPage.jsx — Cerea redesign
+
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { COPYRIGHT_TEXT } from "../config/company";
+import { useMsal } from "@azure/msal-react";
+import { useAuth } from "../context/AuthContext";
+import { authApi } from "../api";
+import { loginRequest, extractNikFromEmail, EMAIL_DOMAIN } from "../msalConfig";
+import Icon from "../components/Icon";
+import cereaLogoWhite    from "../assets/cerea-logo-white.png";
+import cereaMark         from "../assets/cerea-mark.png";
+
+/* ─── Forgot Password Modal ──────────────────────────────────── */
+function ForgotPasswordModal({ onClose }) {
+  const [nik,    setNik]    = useState("");
+  const [step,   setStep]   = useState("input");
+  const [result, setResult] = useState(null);
+  const [errMsg, setErrMsg] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!nik.trim()) return;
+    setStep("loading");
+    try {
+      const res = await authApi.forgotPassword(nik.trim());
+      setResult(res.data);
+      setStep("success");
+    } catch (err) {
+      setErrMsg(err.response?.data?.detail ?? "An error occurred. Please try again.");
+      setStep("error");
+    }
+  }
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:200, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background:"white", borderRadius:16, padding:"28px 28px 24px", width:"100%", maxWidth:380, boxShadow:"0 24px 60px rgba(0,0,0,0.25)", animation:"slideUp .25s ease" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+          <div>
+            <h3 style={{ fontSize:"0.80rem", fontWeight:700, color:"#1a1a1a", margin:0, fontFamily:"Montserrat,sans-serif" }}>Forgot Password</h3>
+            <p style={{ fontSize:"0.70rem", color:"#9ca3af", marginTop:3 }}>Reset using your employee NIK</p>
+          </div>
+          <button onClick={onClose} style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"#f3f4f6", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#9ca3af" }}>
+            <Icon name="x" size={14} />
+          </button>
+        </div>
+
+        {(step === "input" || step === "loading" || step === "error") && (
+          <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            {step === "error" && (
+              <div style={{ padding:"10px 13px", borderRadius:8, background:"#fef2f2", border:"1px solid #fecaca", color:"#b91c1c", fontSize:"0.80rem" }}>
+                {errMsg}
+              </div>
+            )}
+            <div>
+              <label style={LS.label}>USERNAME</label>
+              <div style={LS.inputWrap}>
+                <Icon name="user" size={15} style={{ color:"#9ca3af", flexShrink:0 }} />
+                <input style={LS.input} type="text" placeholder="Enter your username" value={nik}
+                  onChange={e => { setNik(e.target.value); if (step==="error") setStep("input"); }} autoFocus />
+              </div>
+            </div>
+            <button type="submit" disabled={step==="loading" || !nik.trim()} style={{ ...LS.btnPrimary, opacity:step==="loading"||!nik.trim()?0.7:1 }}>
+              {step==="loading" ? "Processing…" : "Reset Password"}
+            </button>
+          </form>
+        )}
+
+        {step === "success" && result && (
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            <div style={{ textAlign:"center" }}>
+              <div style={{ width:48, height:48, borderRadius:"50%", background:"#f0fdf4", border:"2px solid #86efac", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px" }}>
+                <Icon name="check" size={22} style={{ color:"#16a34a" }} />
+              </div>
+              <p style={{ fontWeight:700, color:"#1a1a1a", fontSize:"0.95rem", fontFamily:"Montserrat,sans-serif" }}>Password Reset!</p>
+              <p style={{ fontSize:"0.75rem", color:"#6b7280", marginTop:4 }}>Hi, <strong>{result.full_name}</strong></p>
+            </div>
+            <div style={{ background:"#f9fafb", border:"1.5px dashed #d1d5db", borderRadius:10, padding:"14px 16px", textAlign:"center" }}>
+              <p style={{ fontSize:"0.65rem", color:"#6b7280", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600 }}>Temporary Password</p>
+              <p style={{ fontFamily:"monospace", fontSize:"1.8rem", fontWeight:700, color:"#12365F", letterSpacing:"0.15em", margin:0 }}>{result.temp_password}</p>
+              <button onClick={() => navigator.clipboard?.writeText(result.temp_password)}
+                style={{ marginTop:8, fontSize:"0.70rem", color:"#12365F", background:"none", border:"none", cursor:"pointer", fontWeight:600, textDecoration:"underline" }}>
+                Copy to clipboard
+              </button>
+            </div>
+            <div style={{ background:"#fff7ed", border:"1px solid #fed7aa", borderRadius:8, padding:"10px 13px", fontSize:"0.72rem", color:"#c2410c", lineHeight:1.5 }}>
+              <strong>Please change this password</strong> immediately after login.
+            </div>
+            <button onClick={onClose} style={LS.btnPrimary}>Back to Login</button>
+          </div>
+        )}
+        <style>{`@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Shared input styles ────────────────────────────────────── */
+const LS = {
+  inputWrap: {
+    display:"flex", alignItems:"center", gap:10,
+    background:"#f9fafb", border:"1.5px solid #e5e7eb",
+    borderRadius:8, padding:"10px 14px", transition:"all 0.2s",
+  },
+  input: {
+    border:"none", outline:"none", background:"none",
+    width:"100%", fontFamily:"Montserrat,sans-serif", fontSize:"0.85rem",
+    color:"#1a1a1a",
+  },
+  label: {
+    display:"block", fontSize:"0.68rem", fontWeight:600,
+    color:"#9ca3af", marginBottom:6,
+    textTransform:"uppercase", letterSpacing:"0.08em",
+    fontFamily:"Montserrat,sans-serif",
+  },
+  btnPrimary: {
+    width:"100%", padding:"12px 0", borderRadius:8,
+    background:"linear-gradient(135deg,#12365F,#0E9AA7)",
+    color:"white", border:"none", cursor:"pointer",
+    fontWeight:700, fontSize:"0.88rem",
+    fontFamily:"Montserrat,sans-serif", letterSpacing:"0.03em",
+    boxShadow:"0 4px 14px rgba(18,54,95,0.30)",
+    transition:"all 0.2s",
+  },
+};
+
+/* ════════════════════════════════════════════════════════════ */
+export default function LoginPage() {
+  const navigate           = useNavigate();
+  const { login }          = useAuth();
+  const { instance: msal } = useMsal();
+
+  const [nik,          setNik]          = useState("");
+  const [password,     setPassword]     = useState("");
+  const [showPass,     setShowPass]     = useState(false);
+  const [loading,      setLoading]      = useState(false);
+  const [msLoading,    setMsLoading]    = useState(false);
+  const [ssoStep,      setSsoStep]      = useState(null);
+  const [error,        setError]        = useState("");
+  const [showForgotPw, setShowForgotPw] = useState(false);
+
+  const redirectByRole = (role) =>
+    navigate(role === "Admin" ? "/admin" : "/portal", { replace: true });
+
+  /* ── Manual Login ── */
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (!nik.trim() || !password.trim()) { setError("Username and password are required."); return; }
+    setLoading(true);
+    try {
+      const res = await authApi.login(nik.trim(), password);
+      login(res.data.user, res.data.access_token);
+      redirectByRole(res.data.user.role);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Incorrect username or password. Please try again.");
+    } finally { setLoading(false); }
+  };
+
+  /* ── Microsoft SSO ── */
+  const handleMsLogin = async () => {
+    setError(""); setSsoStep(null); setMsLoading(true);
+    try {
+      setSsoStep(1);
+      let msResult;
+      try { msResult = await msal.loginPopup(loginRequest); }
+      catch (msErr) {
+        if (msErr.errorCode === "user_cancelled" || msErr.errorCode === "popup_window_error") return;
+        throw new Error(msErr.errorCode === "access_denied" ? "Access denied. Contact IT Department." : `Microsoft auth failed: ${msErr.errorCode ?? msErr.message}`);
+      }
+      const msEmail = msResult.account.username;
+      setSsoStep(2);
+      const nik = extractNikFromEmail(msEmail);
+      if (!nik) throw new Error(`Invalid email format: "${msEmail}". Use NIK@${EMAIL_DOMAIN}`);
+      const res = await authApi.microsoftLogin(msEmail, msResult.account.name, nik, msResult.account.localAccountId);
+      setSsoStep(3);
+      await new Promise(r => setTimeout(r, 500));
+      login(res.data.user, res.data.access_token);
+      redirectByRole(res.data.user.role);
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || "Microsoft login failed.");
+    } finally { setMsLoading(false); setSsoStep(null); }
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", width:"100%", display:"flex", fontFamily:"Montserrat,sans-serif",
+      background:"linear-gradient(150deg,#0A2342 0%,#12365F 45%,#1A4B80 100%)" }}>
+
+      {/* Google Font */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+        * { box-sizing:border-box; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+      `}</style>
+
+      {/* ─── LEFT SIDE ─── */}
+      <div style={{
+        flex:1, display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center",
+        padding:"0 48px", position:"relative", overflow:"hidden",
+      }}>
+        {/* Subtle bg orbs */}
+        <div style={{ position:"absolute", width:500, height:500, borderRadius:"50%", background:"rgba(0,0,0,0.15)", top:-200, left:-200, filter:"blur(60px)", pointerEvents:"none" }} />
+        <div style={{ position:"absolute", width:400, height:400, borderRadius:"50%", background:"rgba(255,255,255,0.04)", bottom:-100, right:0, filter:"blur(40px)", pointerEvents:"none" }} />
+
+        {/* Cerea logo — centered */}
+        <div style={{
+          position:"relative", zIndex:2,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          marginTop:"auto", marginBottom:"auto",
+          animation:"fadeIn 0.7s ease",
+        }}>
+          <img
+            src={cereaLogoWhite}
+            alt="Cerea"
+            style={{ width:"100%", maxWidth:440, height:"auto", objectFit:"contain" }}
+          />
+        </div>
+      </div>
+
+      {/* ─── RIGHT SIDE — Login Card ─── */}
+      <div style={{
+        width:"42%", minWidth:440, display:"flex",
+        alignItems:"center", justifyContent:"center",
+        padding:"40px 48px",
+      }}>
+        <div style={{
+          background:"white", borderRadius:20,
+          padding:"40px 36px 32px",
+          width:"100%", maxWidth:420,
+          boxShadow:"0 32px 80px rgba(0,0,0,0.30)",
+          animation:"fadeIn 0.55s 0.1s ease both",
+        }}>
+          {/* Logo + Brand — Cerea mark, centered, above Welcome */}
+          <div style={{ textAlign:"center", marginBottom:28 }}>
+            <div style={{ display:"flex", justifyContent:"center", marginBottom:18 }}>
+              <img
+                src={cereaMark}
+                alt="Cerea"
+                style={{ height:64, width:"auto", objectFit:"contain" }}
+              />
+            </div>
+            <h2 style={{ fontSize:"1.3rem", fontWeight:700, color:"#1a1a1a", margin:"0 0 6px", letterSpacing:"-0.5px", fontFamily:"DM Sans, sans-serif", textAlign: "left"}}>Welcome</h2>
+            <p style={{ fontSize:"0.80rem", color:"#9ca3af", margin:0, fontWeight:400, textAlign: "left" }}>Sign in with your employee account</p>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div style={{ padding:"10px 13px", borderRadius:8, background:"#fef2f2", border:"1px solid #fecaca", color:"#b91c1c", fontSize:"0.80rem", marginBottom:16, display:"flex", gap:8, alignItems:"center" }}>
+              <Icon name="alertCircle" size={14} style={{ flexShrink:0 }} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* SSO progress */}
+          {ssoStep && (
+            <div style={{ marginBottom:14, padding:"10px 14px", background:"#eff6ff", borderRadius:8, border:"1px solid #bfdbfe" }}>
+              {[{id:1,label:"Validating Microsoft account"},{id:2,label:"Verifying in local database"},{id:3,label:"Preparing session"}].map(s => (
+                <div key={s.id} style={{ display:"flex", alignItems:"center", gap:8, marginBottom: s.id<3?6:0 }}>
+                  <div style={{ width:18, height:18, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background:ssoStep>s.id?"#22c55e":ssoStep===s.id?"#3b82f6":"#e2e8f0", transition:"all .3s" }}>
+                    {ssoStep>s.id && <Icon name="check" size={10} style={{ color:"white" }} />}
+                    {ssoStep===s.id && <div style={{ width:6, height:6, borderRadius:"50%", background:"white", animation:"spin .8s linear infinite" }} />}
+                  </div>
+                  <span style={{ fontSize:"0.74rem", color:ssoStep>s.id?"#15803d":ssoStep===s.id?"#1d4ed8":"#94a3b8", fontWeight:ssoStep===s.id?600:400 }}>{s.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Form */}
+          {!msLoading && (
+            <form onSubmit={handleLogin} style={{ display:"flex", flexDirection:"column", gap:16 }}>
+              {/* NIK */}
+              <div>
+                <label style={{ ...LS.label, fontSize: '11px' }}>USERNAME</label>
+                <div style={LS.inputWrap}
+                  onFocus={e => e.currentTarget.style.borderColor="#12365F"}
+                  onBlur={e  => e.currentTarget.style.borderColor="#e5e7eb"}>
+                  <Icon name="user" size={15} style={{ color:"#9ca3af", flexShrink:0 }} />
+                  <input style={{ ...LS.input, fontSize: '13px' }} type="text" placeholder="Enter your username"
+                    value={nik} onChange={e => setNik(e.target.value)} autoComplete="username" />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                  <label style={{ ...LS.label, fontSize: '11px', marginBottom:0 }}>PASSWORD</label>
+                  <button type="button" onClick={() => setShowForgotPw(true)}
+                    style={{ fontSize:"0.72rem", color:"#12365F", fontWeight:600, background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"Montserrat,sans-serif" }}>
+                    Forgot Password?
+                  </button>
+                </div>
+                <div style={LS.inputWrap}
+                  onFocus={e => e.currentTarget.style.borderColor="#12365F"}
+                  onBlur={e  => e.currentTarget.style.borderColor="#e5e7eb"}>
+                  <Icon name="lock" size={15} style={{ color:"#9ca3af", flexShrink:0 }} />
+                  <input style={{ ...LS.input, fontSize: '13px' }} type={showPass?"text":"password"} placeholder="Enter your password"
+                    value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
+                  <button type="button" onClick={() => setShowPass(p => !p)}
+                    style={{ background:"none", border:"none", padding:0, cursor:"pointer", color:"#9ca3af", lineHeight:0 }}>
+                    <Icon name={showPass?"eyeOff":"eye"} size={15} />
+                  </button>
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={loading}
+                style={{ 
+                  ...LS.btnPrimary, 
+                  marginTop: 4, 
+                  opacity: loading ? 0.75 : 1,
+                  fontSize: '13.5px',       // <--- Menentukan ukuran font
+                  fontWeight: '615'       // <--- Menentukan ketebalan font (bisa 'bold', 'normal', 500, 600, dll)
+                }}
+                onMouseOver={e => { if (!loading) e.currentTarget.style.boxShadow="0 6px 20px rgba(18,54,95,0.42)"; }}
+                onMouseOut={e  => e.currentTarget.style.boxShadow="0 4px 14px rgba(18,54,95,0.30)"}
+              >
+                {loading ? "Signing in…" : "Login"}
+              </button>
+            </form>
+          )}
+
+          {/* Divider */}
+          {!msLoading && (
+            <div style={{ display:"flex", alignItems:"center", gap:12, margin:"20px 0" }}>
+              <div style={{ flex:1, height:1, background:"#f0f0f0" }} />
+              <span style={{ fontSize:"0.72rem", color:"#9ca3af", fontWeight:500 }}>or</span>
+              <div style={{ flex:1, height:1, background:"#f0f0f0" }} />
+            </div>
+          )}
+
+          {/* Microsoft SSO */}
+          <button onClick={handleMsLogin} disabled={msLoading || loading}
+            style={{ width:"100%", padding:"11px 0", borderRadius:8, background:"white", color:"#374151", border:"1.5px solid #e5e7eb", cursor: msLoading||loading ? "not-allowed":"pointer", fontFamily:"Montserrat,sans-serif", fontWeight:600, fontSize:"0.85rem", display:"flex", alignItems:"center", justifyContent:"center", gap:10, transition:"all .2s", opacity:loading?0.5:1 }}
+            onMouseOver={e => { if (!msLoading&&!loading){ e.currentTarget.style.borderColor="#0078d4"; e.currentTarget.style.color="#0078d4"; }}}
+            onMouseOut={e  => { e.currentTarget.style.borderColor="#e5e7eb"; e.currentTarget.style.color="#374151"; }}>
+            {msLoading
+              ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" style={{ animation:"spin .8s linear infinite" }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              : <svg width="18" height="18" viewBox="0 0 21 21" fill="none"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+            }
+            {msLoading ? "Processing…" : "Login with Microsoft"}
+          </button>
+
+          {/* Email hint */}
+          <p style={{ textAlign:"center", fontSize:"0.68rem", color:"#9ca3af", marginTop:10 }}>
+            Example username: <span style={{ fontFamily:"monospace", color:"#6b7280" }}>1234</span>
+          </p>
+
+          {/* Footer: copyright + privacy */}
+          <p style={{ textAlign:"center", fontSize:"0.66rem", color:"#9ca3af", marginTop:22, paddingTop:16, borderTop:"1px solid #f0f0f0" }}>
+            {COPYRIGHT_TEXT} | <Link to="/privacy" style={{ color:"var(--brand)", fontWeight:600 }}>Kebijakan Privasi</Link>
+          </p>
+
+        </div>
+      </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPw && <ForgotPasswordModal onClose={() => setShowForgotPw(false)} />}
+    </div>
+  );
+}

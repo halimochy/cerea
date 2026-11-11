@@ -1,0 +1,17 @@
+[project]
+name = "cerea-backend"
+version = "2.1.0"
+description = "FastAPI backend for Cerea, a role-aware employee portal"
+requires-python = ">=3.12"
+dependencies = [
+    "bcrypt==4.2.1",
+    "cryptography==42.0.7",
+    "fastapi==0.111.0",
+    "pydantic==2.7.1",
+    "pymysql==1.1.1",
+    "python-dotenv==1.0.1",
+    "python-jose[cryptography]==3.3.0",
+    "python-multipart==0.0.9",
+    "sqlalchemy==2.0.30",
+    "uvicorn[standard]==0.29.0",
+]

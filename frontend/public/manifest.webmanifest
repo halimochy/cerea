@@ -1,0 +1,12 @@
+{
+  "name": "Cerea — Employee Portal",
+  "short_name": "Cerea",
+  "description": "Cerea is an internal employee portal that brings company apps, dashboards, forms and announcements into one role-aware home screen.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0B1F3A",
+  "icons": [
+    { "src": "/favicon.png", "sizes": "256x256", "type": "image/png", "purpose": "any" }
+  ]
+}

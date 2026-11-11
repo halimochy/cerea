@@ -1,0 +1,189 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1950" viewBox="0 0 1900 1950">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#4A5568"/></marker></defs>
+<rect width="1900" height="1950" fill="#F7F9FB"/>
+<text x="30" y="50" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#12365F" text-anchor="start">Cerea Employee Portal — end-to-end flow</text>
+<text x="30" y="80" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#5B6678" text-anchor="start">From opening the site to the user's portal, and how the admin workspace shapes what each person sees</text>
+<rect x="30" y="100" width="1840" height="124" rx="22" fill="#0A2342"/>
+<text x="52" y="128" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="start">ADMIN WORKSPACE — sets what every user sees below (stored in the database)</text>
+<rect x="52.0" y="144" width="346.4" height="58" rx="9" fill="#FFFFFF"/>
+<text x="225.2" y="179" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#12365F" text-anchor="middle">Departments</text>
+<rect x="414.4" y="144" width="346.4" height="58" rx="9" fill="#FFFFFF"/>
+<text x="587.5999999999999" y="179" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#12365F" text-anchor="middle">Users &amp; roles</text>
+<rect x="776.8" y="144" width="346.4" height="58" rx="9" fill="#FFFFFF"/>
+<text x="950.0" y="179" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#12365F" text-anchor="middle">App cards &amp; icons</text>
+<rect x="1139.1999999999998" y="144" width="346.4" height="58" rx="9" fill="#FFFFFF"/>
+<text x="1312.3999999999999" y="179" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#12365F" text-anchor="middle">General apps</text>
+<rect x="1501.6" y="144" width="346.4" height="58" rx="9" fill="#FFFFFF"/>
+<text x="1674.8" y="179" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#12365F" text-anchor="middle">Announcements &amp; priority</text>
+<rect x="30" y="240" width="620" height="1400" rx="18" fill="#E8F6F7"/>
+<path d="M30 282 V258 a18 18 0 0 1 18 -18 H632 a18 18 0 0 1 18 18 V282 Z" fill="#CDEBEE"/>
+<text x="340" y="267" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#0B6F78" text-anchor="middle">EMPLOYEE / USER</text>
+<rect x="670" y="240" width="600" height="1400" rx="18" fill="#F1F4F8"/>
+<path d="M670 282 V258 a18 18 0 0 1 18 -18 H1252 a18 18 0 0 1 18 18 V282 Z" fill="#DDE3EC"/>
+<text x="970" y="267" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#34465F" text-anchor="middle">SYSTEM (React app + API + database)</text>
+<rect x="1290" y="240" width="580" height="1400" rx="18" fill="#E9EFF8"/>
+<path d="M1290 282 V258 a18 18 0 0 1 18 -18 H1852 a18 18 0 0 1 18 18 V282 Z" fill="#D1DEF0"/>
+<text x="1580" y="267" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#12365F" text-anchor="middle">ADMIN</text>
+<rect x="130.0" y="307.5" width="420" height="65" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="130.0" y="307.5" width="6" height="65" rx="3" fill="#0E9AA7"/>
+<text x="343" y="332.5" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">1 · Open the site</text>
+<text x="343" y="352.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">goes to the /login page</text>
+<rect x="760.0" y="299.0" width="420" height="82" rx="10" fill="#FFFFFF" fill-opacity="0.55" stroke="#8C9AAE" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="970" y="323.0" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6678" text-anchor="middle">Public pages</text>
+<text x="970" y="343.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">/login and /privacy need no sign-in</text>
+<text x="970" y="360.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">every other page needs a token</text>
+<path d="M550.0 340 L760.0 340" fill="none" stroke="#8C9AAE" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6 5"/>
+<rect x="130.0" y="420.5" width="420" height="99" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="130.0" y="420.5" width="6" height="99" rx="3" fill="#0E9AA7"/>
+<text x="343" y="445.5" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">2 · Sign in</text>
+<text x="343" y="465.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">username + password</text>
+<text x="343" y="482.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">or the "Login with Microsoft" button</text>
+<text x="343" y="499.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">forgot password? get a temporary one</text>
+<path d="M340 372.5 L340 420.5" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="760.0" y="429.0" width="420" height="82" rx="10" fill="#FFFFFF" fill-opacity="0.55" stroke="#8C9AAE" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="970" y="453.0" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6678" text-anchor="middle">Microsoft path</text>
+<text x="970" y="473.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">pop-up sign-in returns the work email</text>
+<text x="970" y="490.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">the NIK is read from NIK@domain</text>
+<path d="M550.0 470 L760.0 470" fill="none" stroke="#8C9AAE" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6 5"/>
+<polygon points="970,560.0 1170.0,625 970,690.0 770.0,625" fill="#FFF1C9" stroke="#E0A526" stroke-width="1.6"/>
+<text x="970" y="621" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#5C3B00" text-anchor="middle">Valid account?</text>
+<text x="970" y="641" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6B4B10" text-anchor="middle">password matches, or</text>
+<text x="970" y="657" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6B4B10" text-anchor="middle">the NIK is registered</text>
+<path d="M340 519.5 L340 545 L970 545 L970 560.0" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M970 511.0 L970 545" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round"/>
+<path d="M770.0 625 L250 625 L250 519.5" fill="none" stroke="#B42318" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<text x="520" y="617" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#B42318" text-anchor="middle">No · error message, try again</text>
+<rect x="760.0" y="734.0" width="420" height="82" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="760.0" y="734.0" width="6" height="82" rx="3" fill="#5B6B82"/>
+<text x="973" y="759.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">3 · Issue the session</text>
+<text x="973" y="779.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">JWT token valid for 8 hours</text>
+<text x="973" y="796.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">returns name, role and department</text>
+<path d="M970 690.0 L970 734.0" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<text x="982" y="714.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#1B7F4B" text-anchor="start">Yes</text>
+<rect x="130.0" y="742.5" width="420" height="65" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="130.0" y="742.5" width="6" height="65" rx="3" fill="#0E9AA7"/>
+<text x="343" y="767.5" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">4 · Session is saved</text>
+<text x="343" y="787.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">token + profile kept in the browser</text>
+<path d="M760.0 775 L550.0 775" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polygon points="970,900.0 1160.0,960 970,1020.0 780.0,960" fill="#FFF1C9" stroke="#E0A526" stroke-width="1.6"/>
+<text x="970" y="956" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#5C3B00" text-anchor="middle">Role is Admin?</text>
+<text x="970" y="976" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6B4B10" text-anchor="middle">decides the landing page</text>
+<path d="M970 816.0 L970 900.0" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="760.0" y="1059.0" width="420" height="82" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="760.0" y="1059.0" width="6" height="82" rx="3" fill="#5B6B82"/>
+<text x="973" y="1084.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">5 · Load portal data</text>
+<text x="973" y="1104.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">cards filtered by role + department</text>
+<text x="973" y="1121.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">announcements, frequently used</text>
+<path d="M970 1020.0 L970 1059.0" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<text x="982" y="1046.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#B42318" text-anchor="start">No · any other role</text>
+<rect x="130.0" y="1059.0" width="420" height="82" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="130.0" y="1059.0" width="6" height="82" rx="3" fill="#0E9AA7"/>
+<text x="343" y="1084.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">6 · Browse the portal</text>
+<text x="343" y="1104.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">search · filter by category</text>
+<text x="343" y="1121.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">Website · Application · Dashboard · Form</text>
+<path d="M760.0 1100 L550.0 1100" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="130.0" y="1194.0" width="420" height="82" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="130.0" y="1194.0" width="6" height="82" rx="3" fill="#0E9AA7"/>
+<text x="343" y="1219.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">7 · Read what's going on</text>
+<text x="343" y="1239.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">announcements table + notification bell</text>
+<text x="343" y="1256.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">full list on the What's Going On page</text>
+<path d="M340 1141.0 L340 1194.0" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="760.0" y="1194.0" width="420" height="82" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="760.0" y="1194.0" width="6" height="82" rx="3" fill="#5B6B82"/>
+<text x="973" y="1219.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">Save to MariaDB</text>
+<text x="973" y="1239.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">admin-only API, role checked on every call</text>
+<text x="973" y="1256.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">changes show on the next page load</text>
+<path d="M970 1194.0 L970 1141.0" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6 5" marker-end="url(#ah)"/>
+<rect x="130.0" y="1342.5" width="420" height="65" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="130.0" y="1342.5" width="6" height="65" rx="3" fill="#0E9AA7"/>
+<text x="343" y="1367.5" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">8 · Open an app card</text>
+<text x="343" y="1387.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">the link opens in a new tab</text>
+<path d="M340 1276.0 L340 1342.5" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="760.0" y="1342.5" width="420" height="65" rx="10" fill="#FFFFFF" fill-opacity="0.55" stroke="#8C9AAE" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="970" y="1366.5" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6678" text-anchor="middle">Click is counted</text>
+<text x="970" y="1386.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">per user, feeds the Frequently Used list</text>
+<path d="M550.0 1375 L760.0 1375" fill="none" stroke="#8C9AAE" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6 5"/>
+<rect x="130.0" y="1467.5" width="420" height="65" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="130.0" y="1467.5" width="6" height="65" rx="3" fill="#0E9AA7"/>
+<text x="343" y="1492.5" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">9 · Log out</text>
+<text x="343" y="1512.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">token is removed, back to /login</text>
+<path d="M340 1407.5 L340 1467.5" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="760.0" y="1459.0" width="420" height="82" rx="10" fill="#FFFFFF" fill-opacity="0.55" stroke="#8C9AAE" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="970" y="1483.0" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6678" text-anchor="middle">Session expired?</text>
+<text x="970" y="1503.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">after 8 hours the API answers 401</text>
+<text x="970" y="1520.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">the app returns to /login</text>
+<path d="M550.0 1500 L760.0 1500" fill="none" stroke="#8C9AAE" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6 5"/>
+<rect x="230" y="1568" width="220" height="42" rx="21" fill="#E3F6EC" stroke="#2FA36B" stroke-width="1.6"/>
+<text x="340" y="1595" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#14693F" text-anchor="middle">Back at /login</text>
+<path d="M340 1532.5 L340 1566" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="1370.0" y="324.0" width="420" height="82" rx="10" fill="#FFFFFF" fill-opacity="0.55" stroke="#8C9AAE" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="1580" y="348.0" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6678" text-anchor="middle">Roles in the system</text>
+<text x="1580" y="368.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">Admin · CEO · CFO · DCFO</text>
+<text x="1580" y="385.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">GM/DGM · User</text>
+<rect x="1370.0" y="460.5" width="420" height="99" rx="10" fill="#FFFFFF" fill-opacity="0.55" stroke="#8C9AAE" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="1580" y="484.5" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6678" text-anchor="middle">Who sees an app or announcement</text>
+<text x="1580" y="504.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">Admin sees everything</text>
+<text x="1580" y="521.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">others: role must match AND</text>
+<text x="1580" y="538.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">department must match (empty = all)</text>
+<rect x="1370.0" y="919.0" width="420" height="82" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="1370.0" y="919.0" width="6" height="82" rx="3" fill="#12365F"/>
+<text x="1583" y="944.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">A · Admin Dashboard</text>
+<text x="1583" y="964.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">totals: departments, users, admins,</text>
+<text x="1583" y="981.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">cards and announcements</text>
+<path d="M1160.0 960 L1370.0 960" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<text x="1225" y="950" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#1B7F4B" text-anchor="middle">Yes</text>
+<rect x="1370.0" y="1059.0" width="420" height="82" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="1370.0" y="1059.0" width="6" height="82" rx="3" fill="#12365F"/>
+<text x="1583" y="1084.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">B · Pick a management tab</text>
+<text x="1583" y="1104.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">Departments · Users · App Cards</text>
+<text x="1583" y="1121.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">General Apps · Announcements</text>
+<path d="M1580 1001.0 L1580 1059.0" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="1370.0" y="1194.0" width="420" height="82" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="1370.0" y="1194.0" width="6" height="82" rx="3" fill="#12365F"/>
+<text x="1583" y="1219.0" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">C · Create, edit or delete</text>
+<text x="1583" y="1239.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">the form is validated first</text>
+<text x="1583" y="1256.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">icon: preset, upload, auto or URL</text>
+<path d="M1580 1141.0 L1580 1194.0" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<path d="M1370.0 1235 L1180.0 1235" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="1370.0" y="1342.5" width="420" height="65" rx="9" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<rect x="1370.0" y="1342.5" width="6" height="65" rx="3" fill="#12365F"/>
+<text x="1583" y="1367.5" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">D · Users see the change</text>
+<text x="1583" y="1387.5" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">on their next page load</text>
+<path d="M1580 1276.0 L1580 1342.5" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="30" y="1672" width="1840" height="150" rx="18" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/>
+<text x="52" y="1702" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#1F2A37" text-anchor="start">RUNS THROUGHOUT — rules the platform always applies</text>
+<rect x="52.0" y="1716" width="346.4" height="88" rx="9" fill="#F1F4F8"/>
+<text x="225.2" y="1743" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">Security</text>
+<text x="225.2" y="1767" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">bcrypt-hashed passwords</text>
+<text x="225.2" y="1785" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">JWT 8 h · admin-only API calls</text>
+<rect x="414.4" y="1716" width="346.4" height="88" rx="9" fill="#F1F4F8"/>
+<text x="587.5999999999999" y="1743" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">Targeting</text>
+<text x="587.5999999999999" y="1767" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">role + department filter</text>
+<text x="587.5999999999999" y="1785" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">on cards and announcements</text>
+<rect x="776.8" y="1716" width="346.4" height="88" rx="9" fill="#F1F4F8"/>
+<text x="950.0" y="1743" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">Click tracking</text>
+<text x="950.0" y="1767" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">per-user counts</text>
+<text x="950.0" y="1785" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">feed Frequently Used</text>
+<rect x="1139.1999999999998" y="1716" width="346.4" height="88" rx="9" fill="#F1F4F8"/>
+<text x="1312.3999999999999" y="1743" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">Uploads</text>
+<text x="1312.3999999999999" y="1767" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">card icons are saved in</text>
+<text x="1312.3999999999999" y="1785" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">/uploads/icons</text>
+<rect x="1501.6" y="1716" width="346.4" height="88" rx="9" fill="#F1F4F8"/>
+<text x="1674.8" y="1743" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A37" text-anchor="middle">Privacy</text>
+<text x="1674.8" y="1767" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">Privacy Policy page at /privacy</text>
+<text x="1674.8" y="1785" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="middle">no ad trackers</text>
+<text x="30" y="1867" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#5B6678" text-anchor="start">LEGEND</text>
+<rect x="110" y="1848" width="74" height="30" rx="7" fill="#FFFFFF" stroke="#C5CEDB" stroke-width="1.3"/><rect x="110" y="1848" width="5" height="30" rx="2.5" fill="#0E9AA7"/>
+<text x="196" y="1867" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="start">Step</text>
+<polygon points="300,1863 330,1848 360,1863 330,1878" fill="#FFF1C9" stroke="#E0A526" stroke-width="1.4"/>
+<text x="372" y="1867" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="start">Decision</text>
+<rect x="470" y="1848" width="74" height="30" rx="8" fill="#FFFFFF" fill-opacity="0.55" stroke="#8C9AAE" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="556" y="1867" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="start">Supporting detail</text>
+<rect x="700" y="1848" width="74" height="30" rx="15" fill="#E3F6EC" stroke="#2FA36B" stroke-width="1.5"/>
+<text x="786" y="1867" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="start">End</text>
+<path d="M850 1863 L910 1863" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<text x="922" y="1867" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="start">Flow</text>
+<path d="M990 1863 L1050 1863" fill="none" stroke="#4A5568" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6 5" marker-end="url(#ah)"/>
+<text x="1062" y="1867" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="start">Side effect on the next load</text>
+<text x="30" y="1925" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#5B6678" text-anchor="start">Stack: React + Vite  ·  FastAPI + SQLAlchemy  ·  MariaDB (database: cerea)  ·  Microsoft sign-in is optional and needs Azure setup</text>
+</svg>

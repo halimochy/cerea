@@ -1,0 +1,37 @@
+# ── Environment & secrets ─────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Python ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# ── Node / Vite ───────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Runtime data ──────────────────────────────────────
+# User-uploaded card icons (created by the API at runtime)
+backend/uploads/
+
+# ── Editors, OS & local tooling ───────────────────────
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
+*.log
