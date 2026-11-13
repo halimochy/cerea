@@ -788,3 +788,40 @@ def delete_announcement(
 @app.get("/health", tags=["🔧 Utility"])
 def health():
     return {"status": "ok", "version": "2.1.0"}
+
+
+def _db_error_reason(exc: Exception) -> str:
+    """Map a database error to a short, safe category (never echoes host/user/password)."""
+    msg = str(exc).lower()
+    if "password authentication failed" in msg or "access denied" in msg:
+        return "wrong_credentials"
+    if "tenant or user not found" in msg:
+        return "pooler_user_or_project_ref_wrong"
+    if ("relation" in msg or "table" in msg) and "does not exist" in msg or "doesn't exist" in msg:
+        return "tables_missing_run_seed"
+    if any(k in msg for k in ("could not translate host", "name or service not known",
+                              "network is unreachable", "timed out", "timeout", "connection refused")):
+        return "cannot_reach_database"
+    if "ssl" in msg:
+        return "ssl_problem"
+    if "database" in msg and "does not exist" in msg:
+        return "database_name_wrong"
+    return "other"
+
+
+@app.get("/health/db", tags=["🔧 Utility"])
+def health_db(db: Session = Depends(get_db)):
+    """Database connectivity check for deployments. Details go to the server log only."""
+    from fastapi.responses import JSONResponse
+    import logging
+    try:
+        users = db.query(func.count(models.User.id)).scalar()
+        cards = db.query(func.count(models.ApplicationCard.id)).scalar()
+        return {"status": "ok", "dialect": engine.dialect.name, "users": users, "cards": cards}
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger("uvicorn.error").exception("health/db failed")
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "dialect": engine.dialect.name,
+                     "error_type": type(exc).__name__, "reason": _db_error_reason(exc)},
+        )
