@@ -17,11 +17,11 @@
 # uncomment this rule and replace the URL. It must come BEFORE the
 # catch-all rule below. The ":splat" keeps the path and strips "/api".
 #
-# [[redirects]]
-#   from   = "/api/*"
-#   to     = "https://YOUR-BACKEND-URL/:splat"
-#   status = 200
-#   force  = true
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://cerea-tawny.vercel.app/:splat"
+  status = 200
+  force  = true
 
 # ── Single-page app fallback ────────────────────────────────────
 # Lets deep links such as /user-portal work after a page refresh.
