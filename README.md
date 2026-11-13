@@ -10,10 +10,24 @@
 ![Vite](https://img.shields.io/badge/Vite-7-0B1F3A?logo=vite&logoColor=FFD62E)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111-0B1F3A?logo=fastapi&logoColor=14B8A6)
 ![MariaDB](https://img.shields.io/badge/MariaDB-MySQL-0B1F3A?logo=mariadb&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-0B1F3A?logo=postgresql&logoColor=14B8A6)
+
+### [**Live demo: cereaa.netlify.app**](https://cereaa.netlify.app)
+
+Click **Login as Guest** to explore it, no account needed.
 
 </div>
 
 ---
+
+## Live demo
+
+**<https://cereaa.netlify.app>**: click **Login as Guest** on the sign-in page for read-only access to every app
+and the announcements meant for everyone. The data is demo content, and all app links point to `example.com`.
+
+The demo runs on free tiers (Netlify for the site, Vercel for the API, Supabase for PostgreSQL), so the first
+request after a quiet period can take a few seconds. The admin dashboard is not open to guests; see
+[Running Locally](#running-locally) to try it with your own admin account.
 
 ## Overview
 
